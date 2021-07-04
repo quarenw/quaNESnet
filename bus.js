@@ -11,7 +11,7 @@ function Bus () {
 		else if (addr >= 0x0000 && addr <= 0x1FFF) {
 			this.cpuRam[addr & 0x07FF] = data
 		}
-		else if (add >= 0x2000 && addr <= 0x3FFF) {
+		else if (addr >= 0x2000 && addr <= 0x3FFF) {
 			this.ppu.cpuWrite(addr & 0x0007, data)
 		}
 	}

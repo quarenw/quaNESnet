@@ -41,7 +41,7 @@ function Cartridge (buffer) {
 	if (this.nFileType == 0) {}
 	if (this.nFileType == 1) {
 		this.nPRGBanks = this.header.numRomBanks
-		const prgOffest = (this.header.prgRomSize * this.nPRGBanks) + this.trainerOffest
+		const prgOffest = (this.header.prgRomSize * this.nPRGBanks) + this.trainerOffest + 16
 		this.vPRGMemory.push(...this.data.slice(16, prgOffest))
 
 		this.nCHRBanks = this.header.numVRomBanks
