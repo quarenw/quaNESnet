@@ -50,7 +50,7 @@ function Bus () {
 	this.reset = () => {
 		this.cart.reset()
 		this.cpu.reset()
-		this.ppu.rest()
+		this.ppu.reset()
 		this.nSystemClockCounter = 0
 	}
 

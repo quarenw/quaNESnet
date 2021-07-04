@@ -66,6 +66,10 @@ function Ppu () {
 		this.cart = cartridge
 	}
 
+	this.reset = () => {
+		
+	}
+
 	this.attachDisplay = (display) => {
 		this.display = display
 	}
