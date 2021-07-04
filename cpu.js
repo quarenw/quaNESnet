@@ -32,24 +32,24 @@ function Cpu () {
 	}
 
 	this.read = a => {
-		return this.bus.read(a, false)
+		return this.bus.cpuRead(a, false)
 	}
 
 	this.write = (a, d) => {
-		this.bus.write(a, d)
+		this.bus.cpuWrite(a, d)
 	}
 
 	this.reset = () => {
 		this.addrAbs = 0xFFFC
-		let lo = read(addrAbs + 0)
-		let hi = read(addrAbs + 1)
+		let lo = this.read(this.addrAbs + 0)
+		let hi = this.read(this.addrAbs + 1)
 
 		this.pc = (hi << 8) | lo
 		this.a = 0
 		this.x = 0
 		this.y = 0
 		this.stkp = 0xFD
-		this.status = 0x00 | this.U
+		this.status = 0x00 | this.FLAGS6502.U
 
 		this.addrRel = 0x0000
 		this.addrAbs = 0x0000

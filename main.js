@@ -1,62 +1,29 @@
 const canvas = document.querySelector('#canvas canvas')
 console.log(canvas)
-const ctx = canvas.getContext('2d')
-ctx.fillStyle = 'green'
-ctx.fillRect(5, 5, 5, 5)
+const display = new Display(canvas)
+// const ctx = canvas.getContext('2d')
+// ctx.fillStyle = 'green'
+// ctx.fillRect(5, 5, 5, 5)
 
+const url = './smb.nes'
+const request = new XMLHttpRequest()
+request.responseType = 'arraybuffer'
 
-const nes = new Bus()
+request.onload = () => {
+  var buffer = request.response
+  const nes = new Bus()
+  const cart = new Cartridge(buffer)
+  if (!cart.imageValid()) return false 
+  nes.insertCartridge(cart)
+  nes.attachDisplay(display)
+  nes.reset()
 
-// nes.ram[0x80] = 0xA2
-// nes.ram[0x81] = 0x0A
-// nes.ram[0x82] = 0x8E
-// nes.ram[0x83] = 0x00
-// nes.ram[0x84] = 0x00
-// nes.ram[0x85] = 0xA2
-// nes.ram[0x86] = 0x03
-// nes.ram[0x87] = 0x8E
-// nes.ram[0x88] = 0x01
-// nes.ram[0x89] = 0x00
-// nes.ram[0x8A] = 0xAC
-// nes.ram[0x8B] = 0x00
-// nes.ram[0x8C] = 0x00
-// nes.ram[0x8D] = 0xA9
-// nes.ram[0x8E] = 0x00
-// nes.ram[0x8F] = 0x18
-// nes.ram[0x8F] = 0x6D
-// nes.ram[0x8F] = 0x01
-// nes.ram[0x8F] = 0x00
-// nes.ram[0x8F] = 0x88
-// nes.ram[0x8F] = 0xD0
-// nes.ram[0x8F] = 0xFA
-// nes.ram[0x8F] = 0x8D
-// nes.ram[0x8F] = 0x02
-// nes.ram[0x8F] = 0x00
-// nes.ram[0x8F] = 0xEA
-// nes.ram[0x8F] = 0xEA
-// nes.ram[0x8F] = 0xEA
+  document.addEventListener('click', () => {
+    console.log('Clocking')
+    nes.clock()
+  })
 
-// nes.ram[0xFFFC] = 0x00
-// nes.ram[0xFFFD] = 0x80
+}
 
-nes.ram[0xFFFC] = 0x20
-nes.ram[0xFFFD] = 0x52
-nes.ram[0xFFFE] = 0x42
-nes.ram[0x5242] = 0xA9
-nes.ram[0x5243] = 0x04
-nes.ram[0x4252] = 0xA9
-nes.ram[0x4253] = 0x05
-nes.ram[0x4254] = 0x20
-nes.ram[0x4255] = 0x71
-nes.ram[0x4256] = 0x13
-nes.ram[0x1371] = 0xA9
-nes.ram[0x1372] = 0x01
-
-nes.cpu.pc = 0xFFFC
-
-
-
-document.addEventListener('click', () => {
-  console.log('Clocking')
-  nes.cpu.clock()
-})
+request.open('GET', url, true)
+request.send(null)
