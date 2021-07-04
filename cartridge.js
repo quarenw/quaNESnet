@@ -45,7 +45,7 @@ function Cartridge (buffer) {
 		this.vPRGMemory.push(...this.data.slice(16, prgOffest))
 
 		this.nCHRBanks = this.header.numVRomBanks
-		const chrOffset = prgOffest + (this.header.chrRomSize * this.nCHRBanks)
+		const chrOffset = prgOffest + (this.header.chrRomSize * (this.nCHRBanks || 1))
 		this.vCHRMemory.push(...this.data.slice(prgOffest, chrOffset))
 	}
 	if (this.nFileType ==2) {}
@@ -97,5 +97,9 @@ function Cartridge (buffer) {
 			return true
 		}
 		else return false
+	}
+
+	this.reset = () => {
+		if (this.pMapper) this.pMapper.reset()
 	}
 }

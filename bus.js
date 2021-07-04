@@ -3,6 +3,8 @@ function Bus () {
 	this.cpuRam = initRam(2048)
 	this.cpu = new Cpu()
 	this.ppu = new Ppu()
+	this.controller = []
+	this.controllerState = []
 
 	this.cpu.connectBus(this)
 
@@ -13,6 +15,9 @@ function Bus () {
 		}
 		else if (addr >= 0x2000 && addr <= 0x3FFF) {
 			this.ppu.cpuWrite(addr & 0x0007, data)
+		}
+		else if (addr >= 0x4016 && addr <= 0x4017) {
+			this.controllerState[addr & 0x0001] = this.controller[addr & 0x0001]
 		}
 	}
 
@@ -25,6 +30,10 @@ function Bus () {
 		}
 		else if (addr >= 0x2000 && addr <= 0x3FFF) {
 			data = this.ppu.cpuRead(addr & 0x0007, readOnly)
+		}
+		else if (addr >= 0x4016 && addr <= 0x4017) {
+			data = (this.controllerState[addr & 0x0001] & 0x80) > 0
+			this.controllerState[addr & 0x0001] <<= 1
 		}
 		return data
 	}
@@ -39,13 +48,19 @@ function Bus () {
 	}
 
 	this.reset = () => {
+		this.cart.reset()
 		this.cpu.reset()
+		this.ppu.rest()
 		this.nSystemClockCounter = 0
 	}
 
 	this.clock = () => {
 		this.ppu.clock()
 		if (this.nSystemClockCounter % 3 === 0) this.cpu.clock()
+		if (this.ppu.nmi) {
+			this.ppu.nmi = false
+			this.cpu.nmi()
+		}
 		this.nSystemClockCounter++
 	}
 }

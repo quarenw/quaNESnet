@@ -101,17 +101,10 @@ function Cpu () {
 		if (this.cycles == 0) {
 			this.opcode = this.read(this.pc)
 
+			// console.log(`${this.clockCount} | ${convertDecToHexString(this.pc)}: ${this.lookup[this.opcode].name}`)
 			this.setFlag('U', true)
 			this.pc++
 			this.cycles = this.lookup[this.opcode].cycles
-			// console.log('PC:', this.pc)
-			// console.log('addrAbs:', this.addrAbs)
-			// console.log('addrRel:', this.addrRel)
-			// console.log('Stack:', this.stkp)
-			// console.log('Op:', this.opcode)
-			// console.log('Acc:', this.a)
-			// console.log('X:', this.x)
-			// console.log('Y:', this.y)
 			const additionalCyclesAddr = this.lookup[this.opcode].addrmode()
 			const additionalCyclesOper = this.lookup[this.opcode].operate()
 			this.cycles += (additionalCyclesAddr + additionalCyclesOper)
@@ -995,3 +988,16 @@ function Cpu () {
 	]
 }
 
+function convertDecToHexString (num, width, noPrefix) {
+	let base = ''
+  let prefix = ''
+	const str = num.toString(16)
+
+  if (num < 0) prefix += '-'
+  if (!noPrefix) prefix += '0x'
+  if (width === undefined) return prefix + str
+
+  for (var i = 0; i < width; i++) base += '0'
+
+  return prefix + (base + str).substr(-1 * width)
+}
