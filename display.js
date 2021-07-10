@@ -10,7 +10,8 @@ Display.prototype.isDisplay = true
 
 Display.prototype.renderPixel = function (x, y, rgb) {
 	const index = (y * this.width + x) 
-	this.uint32[index] = 4278202179
+	// this.uint32[index] = 4278202179
+	this.uint32[index] = rgb
 	// this.data.data[index] = rgb
 	// this.data.data[index + 1] = rgb
 	// this.data.data[index + 2] = rgb

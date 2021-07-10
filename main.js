@@ -6,7 +6,7 @@ let frame = 0
 let oldTime = window.performance.now()
 let fpsEle = document.querySelector('#fps')
 
-const url = './dkg.nes'
+const url = './6502.bin'
 const request = new XMLHttpRequest()
 request.responseType = 'arraybuffer'
 

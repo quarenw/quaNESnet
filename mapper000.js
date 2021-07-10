@@ -1,6 +1,6 @@
 function Mapper000 (prgBanks, chrBanks, nPRGBanks, nCHRBanks) {
 	this.reset = () => {}
-	
+
 	this.cpuMapRead = (addr) => {
 		if (addr >= 0x8000 && addr <= 0xFFFF) {
 			return { mappedAddr: addr & (nPRGBanks > 1 ? 0x7FFF : 0x3FFF), output: true }

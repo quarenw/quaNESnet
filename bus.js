@@ -1,6 +1,6 @@
 function Bus () {
 	this.nSystemClockCounter = 0
-	this.cpuRam = initRam(2048)
+	this.cpuRam = new Uint8Array(2048)
 	this.cpu = new Cpu()
 	this.ppu = new Ppu()
 	this.controller = []
