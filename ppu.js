@@ -107,7 +107,8 @@ function Ppu () {
 	this.setFineY = (ramType, data) => this.setMulti(ramType, 12, 3, data)
 
 	this.getColorFromPaletteRam = (palette, pixel) => {
-		return this.PALETTES[this.ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F] // NOTE: Problematic
+		// return this.PALETTES[this.ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F] // NOTE: Problematic
+		return this.PALETTES[pixel] // NOTE: Problematic
 	}
 
 	this.cpuRead = (addr, readOnly) => {
@@ -249,6 +250,7 @@ function Ppu () {
 				if (addr >= 0x0800 && addr <= 0x0BFF) this.tblName[0][addr & 0x03FF] = data
 				if (addr >= 0x0C00 && addr <= 0x0FFF) this.tblName[1][addr & 0x03FF] = data
 			} else if (this.cart.mirror == 'HORIZONTAL') {
+				// if (data == 108 && addr == 200) debugger
 				if (addr >= 0x0000 && addr <= 0x03FF) this.tblName[0][addr & 0x03FF] = data
 				if (addr >= 0x0400 && addr <= 0x07FF) this.tblName[0][addr & 0x03FF] = data
 				if (addr >= 0x0800 && addr <= 0x0BFF) this.tblName[1][addr & 0x03FF] = data
@@ -351,6 +353,7 @@ function Ppu () {
 		}
 
 		const loadBackgrounShifters = () => {
+			// if (this.bgNextTileLsb[0] || this.bgShifterPatternLo[0]) debugger
 			this.bgShifterPatternLo[0] = (this.bgShifterPatternLo & 0xFF00) | this.bgNextTileLsb[0]
 			this.bgShifterPatternHi[0] = (this.bgShifterPatternHi & 0xFF00) | this.bgNextTileMsb[0]
 
@@ -389,12 +392,12 @@ function Ppu () {
 						this.bgNextTileAttr &= 0x03
 						break
 					case 4:
-						this.bgNextTileLsb[0] == this.ppuRead((this.readBit(this.controlLookup.name, this.controlLookup['patternBackground']) << 12)
+						this.bgNextTileLsb[0] = this.ppuRead((this.readBit(this.controlLookup.name, this.controlLookup['patternBackground']) << 12)
 																											+ (this.bgNextTileId[0] << 4)
 																											+ (this.readFineY(this.loopyLookup.vramName) + 0))
 						break
 					case 6:
-						this.bgNextTileMsb[0] == this.ppuRead((this.readBit(this.controlLookup.name, this.controlLookup['patternBackground']) << 12)
+						this.bgNextTileMsb[0] = this.ppuRead((this.readBit(this.controlLookup.name, this.controlLookup['patternBackground']) << 12)
 																											+ (this.bgNextTileId[0] << 4)
 																											+ (this.readFineY(this.loopyLookup.vramName) + 8))
 					case 7:

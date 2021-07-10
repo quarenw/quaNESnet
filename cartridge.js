@@ -21,7 +21,7 @@ function Cartridge (buffer) {
   }
 
 	this.data = new Uint8Array(buffer)
-  console.log(this.data)
+  console.log('CARTRIDGE: ', this.data)
 
   this.header.headerString = new TextDecoder("ascii").decode(this.data.slice(0, 4))
   this.header.numRomBanks = this.data.slice(4, 5)[0]
@@ -30,7 +30,7 @@ function Cartridge (buffer) {
   this.header.numPrgRamBanks = this.data.slice(8, 9)[0]
   this.header.info2 = this.data.slice(9, 10)[0]
   this.header.reserved.push(...this.data.slice(10, 16))
-  console.log(this.header)
+  console.log('HEADER: ', this.header)
 
 	if (this.header.info[0] & 0x04) this.trainerOffest = 512
 
@@ -58,8 +58,8 @@ function Cartridge (buffer) {
 			break
 	}
 
-	console.log(this.vPRGMemory)
-	console.log(this.vCHRMemory)
+	console.log('vPRGMemory: ', this.vPRGMemory)
+	console.log('vCHRMemory: ', this.vCHRMemory)
 
 	this.imageValid = () => {
 		return this.bImageValid
