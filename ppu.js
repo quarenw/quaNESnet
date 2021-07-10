@@ -269,28 +269,28 @@ function Ppu () {
 	}
 
 	this.reset = () => {
-		this.fineX = 0x00
+		this.fineX = new Uint8Array(1)
 
-		this.addrLatch = 0x00
-		this.ppuDataBuffer = 0x00
+		this.addrLatch = new Uint8Array(1)
+		this.ppuDataBuffer = new Uint8Array(1)
 
 		this.cycle = 0
 		this.scanline = 0
 
-		this.bgNextTileId = 0x00
-		this.bgNextTileAttr = 0x00
-		this.bgNextTileLsb = 0x00
-		this.bgNextTileMsb = 0x00
-		this.bgShifterPatternLo = 0x0000
-		this.bgShifterPatternHi = 0x0000
-		this.bgShifterPatternLo = 0x0000
-		this.bgShifterPatternHi = 0x0000
+		this.bgNextTileId = new Uint8Array(1)
+		this.bgNextTileAttr = new Uint8Array(1)
+		this.bgNextTileLsb = new Uint8Array(1)
+		this.bgNextTileMsb = new Uint8Array(1)
+		this.bgShifterPatternLo = new Uint16Array(1)
+		this.bgShifterPatternHi = new Uint16Array(1)
+		this.bgShifterPatternLo = new Uint16Array(1)
+		this.bgShifterPatternHi = new Uint16Array(1)
 		
-		this.status =0x00
-		this.mask = 0x00
-		this.control = 0x00
-		this.vramAddr = 0x0000
-		this.tramAddr = 0x0000
+		this.status = new Uint8Array(1)
+		this.mask = new Uint8Array(1)
+		this.control = new Uint8Array(1)
+		this.vramAddr = new Uint16Array(1)
+		this.tramAddr = new Uint16Array(1)
 	}
 
 	this.attachDisplay = (display) => {

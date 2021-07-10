@@ -111,13 +111,19 @@ function Cpu () {
 	this.clock = () => {
 		if (this.cycles == 0) {
 			this.opcode[0] = this.read(this.pc[0])
-			console.log(`
-			${hex(this.pc[0]).toUpperCase()}: ${this.lookup[this.opcode[0]].name}
-			 ${hex(this.read(this.pc[0] + 1)).toUpperCase()}
-			 Adr:${this.lookup[this.opcode[0]].addrName}
-			 (${this.debugStatus()})
-			 a: ${hex(this.a[0])}  x: ${hex(this.x[0])}   y: ${hex(this.y[0])}   stack: ${hex(this.stkp[0])}
-			`.replaceAll(/\t|\n|\r/ig, ''))
+
+			if (this.pc[0] >= 0xFCBD) {
+				console.log(`
+				${hex(this.pc[0], 4).toUpperCase()}: ${this.lookup[this.opcode[0]].name}(${hex(this.opcode[0])})
+				 ${hex(this.read(this.pc[0] + 1)).toUpperCase()}
+				 ${hex(this.read(this.pc[0] + 2)).toUpperCase()}
+				 ${hex(this.read(this.pc[0] + 3)).toUpperCase()}
+				 Adr:${this.lookup[this.opcode[0]].addrName}
+				 (${this.debugStatus()})
+				 a: ${hex(this.a[0])}  x: ${hex(this.x[0])}   y: ${hex(this.y[0])}   stack: ${hex(this.stkp[0])}
+				 `.replaceAll(/\t|\n|\r/ig, ''))
+				 debugger
+			}
 
 			this.setFlag('U', true)
 			this.pc[0]++
@@ -448,7 +454,7 @@ function Cpu () {
 	}
 
 
-	this.CMX = () => {
+	this.CPX = () => {
 		this.fetch()
 		this.temp[0] = this.x[0] - this.fetched[0]
 		this.setFlag('C', this.x[0] >= this.fetched[0])
@@ -457,7 +463,7 @@ function Cpu () {
 		return 1
 	}
 
-	this.CMY = () => {
+	this.CPY = () => {
 		this.fetch()
 		this.temp[0] = this.y[0] - this.fetched[0]
 		this.setFlag('C', this.y[0] >= this.fetched[0])
@@ -1005,7 +1011,7 @@ function Cpu () {
 	]
 }
 
-function hex (num, width, noPrefix) {
+function hex (num, width = 2, noPrefix) {
 	let base = ''
   let prefix = ''
 	const str = num.toString(16)

@@ -6,7 +6,7 @@ let frame = 0
 let oldTime = window.performance.now()
 let fpsEle = document.querySelector('#fps')
 
-const url = './6502.bin'
+const url = './png.nes'
 const request = new XMLHttpRequest()
 request.responseType = 'arraybuffer'
 
@@ -24,15 +24,19 @@ request.onload = () => {
   // })
 
   window.onkeydown = e => {
-    running = !running
-    if (e.keyCode == 32) run()
+    if (e.keyCode == 32) {
+      running = !running
+      run()
+    }
   }
 
   function run () {
-    measureFps()
     const cycles = (341 * 262 /3) | 0
     for (let i = 0; i < cycles; i ++) nes.clock()
-    if (running) window.requestAnimationFrame(run)
+    if (running) {
+      measureFps()
+      window.requestAnimationFrame(run)
+    }
   }
 
   function measureFps () {
