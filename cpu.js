@@ -112,17 +112,18 @@ function Cpu () {
 		if (this.cycles == 0) {
 			this.opcode[0] = this.read(this.pc[0])
 
-			if (this.pc[0] >= 0xFCBD) {
-				console.log(`
-				${hex(this.pc[0], 4).toUpperCase()}: ${this.lookup[this.opcode[0]].name}(${hex(this.opcode[0])})
-				 ${hex(this.read(this.pc[0] + 1)).toUpperCase()}
-				 ${hex(this.read(this.pc[0] + 2)).toUpperCase()}
-				 ${hex(this.read(this.pc[0] + 3)).toUpperCase()}
-				 Adr:${this.lookup[this.opcode[0]].addrName}
-				 (${this.debugStatus()})
-				 a: ${hex(this.a[0])}  x: ${hex(this.x[0])}   y: ${hex(this.y[0])}   stack: ${hex(this.stkp[0])}
-				 `.replaceAll(/\t|\n|\r/ig, ''))
-				 debugger
+			if (this.pc[0] >= 0xFCBF) {
+				window.debugControl = true
+			// 	console.log(`
+			// 	${hex(this.pc[0], 4).toUpperCase()}: ${this.lookup[this.opcode[0]].name}(${hex(this.opcode[0])})
+			// 	 ${hex(this.read(this.pc[0] + 1)).toUpperCase()}
+			// 	 ${hex(this.read(this.pc[0] + 2)).toUpperCase()}
+			// 	 ${hex(this.read(this.pc[0] + 3)).toUpperCase()}
+			// 	 Adr:${this.lookup[this.opcode[0]].addrName}
+			// 	 (${this.debugStatus()})
+			// 	 a: ${hex(this.a[0])}  x: ${hex(this.x[0])}   y: ${hex(this.y[0])}   stack: ${hex(this.stkp[0])}
+			// 	 `.replaceAll(/\t|\n|\r/ig, ''))
+			// 	 debugger
 			}
 
 			this.setFlag('U', true)

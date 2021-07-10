@@ -180,7 +180,7 @@ function Ppu () {
 					this.setCourseX(this.loopyLookup.vramName, data >> 3)
 					this.addrLatch[0] = 1
 				} else {
-					this.fineY[0] = data & 0x07
+					this.setFineY(this.loopyLookup.vramName, data & 0x07)
 					this.setCourseY(this.loopyLookup.vramName, data >> 3)
 					this.addrLatch[0] = 0
 				}
@@ -443,7 +443,10 @@ function Ppu () {
 			bgPalette[0] = (bgPal1 << 1) | bgPal0
 		}
 
-		this.display.renderPixel(this.cycle - 1, this.scanline, this.getColorFromPaletteRam(bgPalette[0], bgPixel[0]))
+		// if (window.debugControl) debugger
+		let pxlColor = this.getColorFromPaletteRam(bgPalette[0], bgPixel[0])
+		// if (pxlColor != 4285887861) debugger
+		this.display.renderPixel(this.cycle - 1, this.scanline, pxlColor)
 		// this.display.renderPixel(this.cycle - 1, this.scanline, 431)
 		
 		this.cycle++
