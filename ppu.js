@@ -224,7 +224,7 @@ function Ppu () {
 			}
 		} else if (addr >= 0x3F00 && addr <= 0x3FFF) {
 			addr &= 0x001F
-			if (addr == 0x0010) addr = 0x0000
+			if (addr == 0x0010) addr = x0000
 			if (addr == 0x0014) addr = 0x0004
 			if (addr == 0x0018) addr = 0x0008
 			if (addr == 0x001C) addr = 0x000C
@@ -355,7 +355,7 @@ function Ppu () {
 			this.bgShifterPatternHi[0] = (this.bgShifterPatternHi & 0xFF00) | this.bgNextTileMsb[0]
 
 			this.bgShifterAttributeLo[0] = (this.bgShifterAttributeLo & 0xFF00) | ((this.bgNextTileAttr & 0b01) ? 0xFF : 0x00)
-			this.bgShifterAttributeHi[0] = (this.bgShifterAttributeHi & 0xFF00) | ((this.bgNextTileAttr & 0b01) ? 0xFF : 0x00)
+			this.bgShifterAttributeHi[0] = (this.bgShifterAttributeHi & 0xFF00) | ((this.bgNextTileAttr & 0b10) ? 0xFF : 0x00)
 		}
 
 		const updateShifters = () => {
@@ -430,8 +430,8 @@ function Ppu () {
 
 			let p0Pixel = new Uint8Array(1)
 			let p1Pixel = new Uint8Array(1)
-			p0Pixel[0] = (this.bgShifterPatternLo & bitMux[0]) > 0
-			p1Pixel[0] = (this.bgShifterPatternHi & bitMux[0]) > 0
+			p0Pixel[0] = (this.bgShifterPatternLo[0] & bitMux[0]) > 0
+			p1Pixel[0] = (this.bgShifterPatternHi[0] & bitMux[0]) > 0
 
 			bgPixel[0] = (p1Pixel[0] << 1) | p0Pixel[0]
 
@@ -440,7 +440,7 @@ function Ppu () {
 			bgPal0[0] = (this.bgShifterAttributeLo[0] & bitMux[0]) > 0
 			bgPal1[0] = (this.bgShifterAttributeLo[0] & bitMux[0]) > 0
 
-			bgPalette[0] = (bgPal1 << 1) | bgPal0
+			bgPalette[0] = (bgPal1[0] << 1) | bgPal0[0]
 		}
 
 		// if (window.debugControl) debugger
