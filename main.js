@@ -6,7 +6,7 @@ let frame = 0
 let oldTime = window.performance.now()
 let fpsEle = document.querySelector('#fps')
 
-const url = './tst.nes'
+const url = './sgt.nes'
 const request = new XMLHttpRequest()
 request.responseType = 'arraybuffer'
 

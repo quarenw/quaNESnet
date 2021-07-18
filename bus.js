@@ -6,10 +6,13 @@ function Bus () {
 	this.controller = []
 	this.controllerState = []
 
+	initDebug(this.cpu, this.cpuRam, this.ppu)
+
 	this.cpu.connectBus(this)
 
 	this.cpuWrite = (addr, data) => {
-		if (this.cart.cpuWrite(addr, data)) {}
+		const read = this.cart.cpuWrite(addr, data)
+		if (read) {}
 		else if (addr >= 0x0000 && addr <= 0x1FFF) {
 			this.cpuRam[addr & 0x07FF] = data
 		}
@@ -69,4 +72,26 @@ function initRam (amount) {
 	const arr = []
 	for (let i = 0; i < (amount); i++) arr[i] = 0x00
 	return arr
+}
+
+function initDebug (cpu, cpuRam, ppu) {
+	window.cpu = cpu
+	window.cpuRam = cpuRam
+	window.ppu = ppu
+
+	window.dumpPPURAM = () => {
+		console.log(`VRAM: ${ppu.vramAddr[0].toString(16)} TRAM: ${ppu.tramAddr[0].toString(16)}`)
+	}
+
+	window.dumpCPU = () => {
+		console.log(`
+			${hex(cpu.pc[0], 4).toUpperCase()}: ${cpu.lookup[cpu.opcode[0]].name}(${hex(cpu.opcode[0])})
+	 		${hex(cpu.read(cpu.pc[0] + 1)).toUpperCase()}
+	 		${hex(cpu.read(cpu.pc[0] + 2)).toUpperCase()}
+	 		${hex(cpu.read(cpu.pc[0] + 3)).toUpperCase()}
+	 		Adr:${cpu.lookup[cpu.opcode[0]].addrName}
+	 		(${cpu.debugStatus()})
+	 		a: ${hex(cpu.a[0])}  x: ${hex(cpu.x[0])}   y: ${hex(cpu.y[0])}   stack: ${hex(cpu.stkp[0])}
+	 		`.replaceAll(/\t|\n|\r/ig, ''))
+	}
 }

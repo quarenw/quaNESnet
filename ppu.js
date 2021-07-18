@@ -107,6 +107,7 @@ function Ppu () {
 	this.setFineY = (ramType, data) => this.setMulti(ramType, 12, 3, data)
 
 	this.getColorFromPaletteRam = (palette, pixel) => {
+		// if (pixel) debugger
 		// return this.PALETTES[this.ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F] // NOTE: Problematic
 		return this.PALETTES[pixel] // NOTE: Problematic
 	}
@@ -178,11 +179,11 @@ function Ppu () {
 			case 0x0005:
 				if (this.addrLatch[0] == 0) {
 					this.fineX[0] = data & 0x07
-					this.setCourseX(this.loopyLookup.vramName, data >> 3)
+					this.setCourseX(this.loopyLookup.tramName, data >> 3)
 					this.addrLatch[0] = 1
 				} else {
-					this.setFineY(this.loopyLookup.vramName, data & 0x07)
-					this.setCourseY(this.loopyLookup.vramName, data >> 3)
+					this.setFineY(this.loopyLookup.tramName, data & 0x07)
+					this.setCourseY(this.loopyLookup.tramName, data >> 3)
 					this.addrLatch[0] = 0
 				}
 				break
@@ -193,10 +194,11 @@ function Ppu () {
 				} else {
 					this.tramAddr[0] = (this.tramAddr[0] & 0xFF00) | data
 					this.vramAddr[0] = this.tramAddr[0]
-					this.addrLatch[0]
+					this.addrLatch[0] = 0
 				}
 				break
 			case 0x0007:
+				// if (this.vramAddr[0] == 16384) debugger
 				this.ppuWrite(this.vramAddr[0], data)
 				this.vramAddr[0] += (this.readBit(this.controlLookup.name, this.controlLookup['incrementMode']) ? 32 : 1)
 				break
@@ -225,7 +227,7 @@ function Ppu () {
 			}
 		} else if (addr >= 0x3F00 && addr <= 0x3FFF) {
 			addr &= 0x001F
-			if (addr == 0x0010) addr = x0000
+			if (addr == 0x0010) addr = 0x0000
 			if (addr == 0x0014) addr = 0x0004
 			if (addr == 0x0018) addr = 0x0008
 			if (addr == 0x001C) addr = 0x000C
@@ -237,12 +239,12 @@ function Ppu () {
 	this.ppuWrite = (addr, data) => {
 		addr &= 0x3FFF
 
-		this.cart.ppuWrite(addr, data)
-		if (this.cart.ppuWrite(addr, data)) {
+		let writeStatus = this.cart.ppuWrite(addr, data)
+		if (writeStatus) {
 
 		} else if (addr >= 0x0000 && addr <= 0x1FFF) {
-			this.tblPattern[(addr & 0x100) >> 12][addr & 0x0FFF] = data
-		} else if (addr >= 0x2000 && addr <= 0x3EFFF) {
+			this.tblPattern[(addr & 0x1000) >> 12][addr & 0x0FFF] = data
+		} else if (addr >= 0x2000 && addr <= 0x3EFF) {
 			addr &= 0x0FFF
 			if (this.cart.mirror == 'VERTICAL') {
 				if (addr >= 0x0000 && addr <= 0x03FF) this.tblName[0][addr & 0x03FF] = data
@@ -250,7 +252,7 @@ function Ppu () {
 				if (addr >= 0x0800 && addr <= 0x0BFF) this.tblName[0][addr & 0x03FF] = data
 				if (addr >= 0x0C00 && addr <= 0x0FFF) this.tblName[1][addr & 0x03FF] = data
 			} else if (this.cart.mirror == 'HORIZONTAL') {
-				// if (data == 108 && addr == 200) debugger
+				// if (data != 36 && data != 0) debugger
 				if (addr >= 0x0000 && addr <= 0x03FF) this.tblName[0][addr & 0x03FF] = data
 				if (addr >= 0x0400 && addr <= 0x07FF) this.tblName[0][addr & 0x03FF] = data
 				if (addr >= 0x0800 && addr <= 0x0BFF) this.tblName[1][addr & 0x03FF] = data
@@ -347,7 +349,7 @@ function Ppu () {
 			if (this.readBit(this.maskLookup.name, this.maskLookup['renderBackground'])
 				|| this.readBit(this.maskLookup.name, this.maskLookup['renderSprites'])) {
 				this.setFineY(this.loopyLookup.vramName, this.readFineY(this.loopyLookup.tramName))
-				this.setBit(this.loopyLookup.vramName, this.loopyLookup['nameTableX'], this.readBit(this.loopyLookup.tramName, this.loopyLookup['nameTableX']))
+				this.setBit(this.loopyLookup.vramName, this.loopyLookup['nameTableY'], this.readBit(this.loopyLookup.tramName, this.loopyLookup['nameTableY']))
 				this.setCourseY(this.loopyLookup.vramName, this.readCourseY(this.loopyLookup.tramName))
 			}
 		}
@@ -418,9 +420,9 @@ function Ppu () {
 		if (this.scanline == 240) {}
 
 		if (this.scanline >= 241 && this.scanline < 261) {
-			if (this.scanline == 241 && this.cycle ==1) {
+			if (this.scanline == 241 && this.cycle == 1) {
 				this.setBit(this.statusLookup.name, this.statusLookup['verticalBlank'], 1)
-				if (this.readBit(this.controlLookup.name, this.controlLookup['enableNmi'])) this.setBit(this.controlLookup.name, this.controlLookup['enableNmi'], true)
+				if (this.readBit(this.controlLookup.name, this.controlLookup['enableNmi'])) this.nmi = true
 			}
 		}
 
@@ -464,7 +466,7 @@ function Ppu () {
 			}
 		}
 	}
-	
+
 	this.PALETTES = [
 		0xff757575,
 		0xff8f1b27,

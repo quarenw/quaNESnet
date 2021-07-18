@@ -82,8 +82,8 @@ function Cpu () {
 			this.stkp[0]--
 
 			this.addrAbs[0] = 0xFFFE
-			let lo = read(this.addrAbs[0] + 0)
-			let hi = read(this.addrAbs[0] + 1)
+			let lo = this.read(this.addrAbs[0] + 0)
+			let hi = this.read(this.addrAbs[0] + 1)
 			this.pc[0] = (hi << 8) | lo
 			this.cycles = 7
 		}
@@ -102,8 +102,8 @@ function Cpu () {
 		this.stkp[0]--
 
 		this.addrAbs[0] = 0xFFFA
-		let lo = read(this.addrAbs[0] + 0)
-		let hi = read(this.addrAbs[0] + 1)
+		let lo = this.read(this.addrAbs[0] + 0)
+		let hi = this.read(this.addrAbs[0] + 1)
 		this.pc[0] = (hi << 8) | lo
 		this.cycles = 8
 	}
@@ -112,19 +112,26 @@ function Cpu () {
 		if (this.cycles == 0) {
 			this.opcode[0] = this.read(this.pc[0])
 
-			// if (this.pc[0] >= 0xFCBF) {
-			// 	window.debugControl = true
-				// console.log(`
-				// ${hex(this.pc[0], 4).toUpperCase()}: ${this.lookup[this.opcode[0]].name}(${hex(this.opcode[0])})
-				//  ${hex(this.read(this.pc[0] + 1)).toUpperCase()}
-				//  ${hex(this.read(this.pc[0] + 2)).toUpperCase()}
-				//  ${hex(this.read(this.pc[0] + 3)).toUpperCase()}
-				//  Adr:${this.lookup[this.opcode[0]].addrName}
-				//  (${this.debugStatus()})
-				//  a: ${hex(this.a[0])}  x: ${hex(this.x[0])}   y: ${hex(this.y[0])}   stack: ${hex(this.stkp[0])}
-				//  `.replaceAll(/\t|\n|\r/ig, ''))
-				//  debugger
-			// }
+			// if (this.pc[0] == 0xC85F || window.debugEnabled) {
+			// if (this.pc[0] == 0xC04C || window.debugEnabled) { // TST - INCORRECT VRAM ADDRESS < 0x3FFF
+			// if (this.pc[0] == 0xc054 || window.debugEnabled) {
+			// if (this.pc[0] == 0xc2e2 || window.debugEnabled) {
+			// if (this.pc[0] == 0xC293 || window.debugEnabled) { // TST - FIRST RENDER - GOAL!!!
+			// if (this.pc[0] == 0xF1CE || window.debugEnabled) { // DKG - PPU STATUS
+			if (this.pc[0] == 0x8596 || window.debugEnabled) { // DKG - PPU STATUS
+
+				window.debugControl = true
+				console.log(`
+				${hex(this.pc[0], 4).toUpperCase()}: ${this.lookup[this.opcode[0]].name}(${hex(this.opcode[0])})
+				 ${hex(this.read(this.pc[0] + 1)).toUpperCase()}
+				 ${hex(this.read(this.pc[0] + 2)).toUpperCase()}
+				 ${hex(this.read(this.pc[0] + 3)).toUpperCase()}
+				 Adr:${this.lookup[this.opcode[0]].addrName}
+				 (${this.debugStatus()})
+				 a: ${hex(this.a[0])}  x: ${hex(this.x[0])}   y: ${hex(this.y[0])}   stack: ${hex(this.stkp[0])}
+				 `.replaceAll(/\t|\n|\r/ig, ''))
+				 debugger
+			}
 
 			this.setFlag('U', true)
 			this.pc[0]++
@@ -633,7 +640,7 @@ function Cpu () {
 		this.fetch()
 		this.temp[0] = (this.fetched[0] << 1) | this.getFlag('C')
 		this.setFlag('C', this.temp[0] & 0xFF00)
-		this.setFlag('Z', (this.temp[0] * 0x00FF) == 0x0000)
+		this.setFlag('Z', (this.temp[0] & 0x00FF) == 0x0000)
 		this.setFlag('N', this.temp[0] & 0x0080)
 		if (this.lookup[this.opcode[0]].addrmode == this.IMP) this.a[0] = this.temp[0] & 0x00FF
 		else this.write(this.addrAbs[0], this.temp[0] & 0x00FF)
@@ -644,7 +651,7 @@ function Cpu () {
 		this.fetch()
 		this.temp[0] = (this.getFlag('C') << 7) | (this.fetched[0] >> 1)
 		this.setFlag('C', this.fetched[0] & 0x01)
-		this.setFlag('Z', (this.temp[0] * 0x00FF) == 0x0000)
+		this.setFlag('Z', (this.temp[0] & 0x00FF) == 0x0000)
 		this.setFlag('N', this.temp[0] & 0x0080)
 		if (this.lookup[this.opcode[0]].addrmode == this.IMP) this.a[0] = this.temp[0] & 0x00FF
 		else this.write(this.addrAbs[0], this.temp[0] & 0x00FF)

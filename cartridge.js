@@ -91,7 +91,9 @@ function Cartridge (buffer) {
 	}
 
 	this.ppuWrite = (addr, data) => {
+		// if (addr === 0) debugger
 		const read = this.pMapper.ppuMapWrite(addr)
+		// console.log(addr, data, read)
 		if (read.output) {
 			this.vPRGMemory[read.mappedAddr] = data
 			return true

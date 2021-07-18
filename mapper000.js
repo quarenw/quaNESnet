@@ -26,6 +26,6 @@ function Mapper000 (prgBanks, chrBanks, nPRGBanks, nCHRBanks) {
 		if (addr >= 0x0000 && addr <= 0x1FFF) {
 			if (nCHRBanks == 0) return { mappedAddr: addr, output: true }
 		}
-		else return { output: false }
+		return { output: false }
 	}
 }
