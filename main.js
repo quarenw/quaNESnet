@@ -6,7 +6,33 @@ let frame = 0
 let oldTime = window.performance.now()
 let fpsEle = document.querySelector('#fps')
 
-const url = './sgt.nes'
+function memoryDump (memArray) {
+  let dump = `${hex(0, 4)}:   `
+  for (let i = 0; i < memArray.length; i++) {
+    dump += hex(memArray[i]) + ' '
+    if ((i + 1) % 16 === 0) {
+      dump += '\n'
+      if (i + 1 < memArray.length) dump += `${hex(i + 1, 4)}:   `
+    }
+  }
+  return dump
+}
+
+function hex (num, width = 2, noPrefix) {
+	let base = ''
+  let prefix = ''
+	const str = num.toString(16)
+
+  if (num < 0) prefix += '-'
+  if (!noPrefix) prefix += '0x'
+  if (width === undefined) return prefix + str
+
+  for (var i = 0; i < width; i++) base += '0'
+
+  return prefix + (base + str).substr(-1 * width)
+}
+
+const url = './tst.nes'
 const request = new XMLHttpRequest()
 request.responseType = 'arraybuffer'
 

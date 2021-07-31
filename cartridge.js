@@ -1,4 +1,5 @@
 function Cartridge (buffer) {
+	window.cart = this
 	this.nMapperId = 0
 	this.nPRGBanks = 0
 	this.nCHRBanks = 0
@@ -42,19 +43,19 @@ function Cartridge (buffer) {
 	if (this.nFileType == 1) {
 		this.nPRGBanks = this.header.numRomBanks
 		const prgOffest = (this.header.prgRomSize * this.nPRGBanks) + this.trainerOffest + 16
-		this.vPRGMemory.push(...this.data.slice(16, prgOffest))
+		this.vPRGMemory = this.data.slice(16, prgOffest)
 
 		this.nCHRBanks = this.header.numVRomBanks
 		const chrOffset = prgOffest + (this.header.chrRomSize * (this.nCHRBanks || 1))
-		this.vCHRMemory.push(...this.data.slice(prgOffest, chrOffset))
+		this.vCHRMemory = this.data.slice(prgOffest, chrOffset)
 	}
-	if (this.nFileType ==2) {}
+	if (this.nFileType == 2) {}
 
 	this.bImageValid = true
 
 	switch (this.nMapperId) {
 		case 0:
-			this.pMapper = new Mapper000(this.nPRGBanks, this.nCHRBanks, this.nPRGBanks, this.nCHRBanks)
+			this.pMapper = new Mapper000(this.nPRGBanks, this.nCHRBanks)
 			break
 	}
 
@@ -85,17 +86,15 @@ function Cartridge (buffer) {
 	this.ppuRead = (addr) => {
 		const read = this.pMapper.ppuMapRead(addr)
 		if (read.output) {
-			return { data: this.vPRGMemory[read.mappedAddr], output: true }
+			return { data: this.vCHRMemory[read.mappedAddr], output: true }
 		}
 		else return { output: false }
 	}
 
 	this.ppuWrite = (addr, data) => {
-		// if (addr === 0) debugger
 		const read = this.pMapper.ppuMapWrite(addr)
-		// console.log(addr, data, read)
 		if (read.output) {
-			this.vPRGMemory[read.mappedAddr] = data
+			this.vCHRMemory[read.mappedAddr] = data
 			return true
 		}
 		else return false

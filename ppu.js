@@ -108,22 +108,22 @@ function Ppu () {
 
 	this.getColorFromPaletteRam = (palette, pixel) => {
 		// if (pixel) debugger
-		// return this.PALETTES[this.ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F] // NOTE: Problematic
-		return this.PALETTES[pixel] // NOTE: Problematic
+		return this.PALETTES[this.ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F] // NOTE: Problematic
+		// return this.PALETTES[pixel] // NOTE: Problematic
 	}
 
 	this.cpuRead = (addr, readOnly) => {
-		let data = 0x00
+		let data = new Uint8Array(1)
 		if (this.readOnly) {
 			switch (addr) {
 				case 0x0000:
-					data = this.control[0]
+					data[0] = this.control[0]
 					break
 				case 0x0001:
-					data = this.mask[0]
+					data[0] = this.mask[0]
 					break
 				case 0x0002:
-					data = this.status[0]
+					data[0] = this.status[0]
 					break
 				case 0x0003:
 					break
@@ -141,7 +141,7 @@ function Ppu () {
 				case 0x0000: break
 				case 0x0001: break
 				case 0x0002:
-					data = (this.status[0] & 0xE0) | (this.ppuDataBuffer & 0x1F)
+					data[0] = (this.status[0] & 0xE0) | (this.ppuDataBuffer[0] & 0x1F)
 					this.setBit(this.statusLookup.name, this.statusLookup['verticalBlank'], 0)
 					this.addrLatch[0] = 0
 					break
@@ -150,14 +150,14 @@ function Ppu () {
 				case 0x0005: break
 				case 0x0006: break
 				case 0x0007:
-					data = this.ppuDataBuffer[0]
+					data[0] = this.ppuDataBuffer[0]
 					this.ppuDataBuffer[0] = this.ppuRead(this.vramAddr[0])
-					if (this.vramAddr[0] >= 0x3F00) data = this.ppuDataBuffer[0]
+					if (this.vramAddr[0] >= 0x3F00) data[0] = this.ppuDataBuffer[0]
 					this.vramAddr[0] += (this.readBit(this.controlLookup.name, this.controlLookup['incrementMode']) ? 32 : 1)
 					break
 			}
 		}
-		return data
+		return data[0]
 	}
 
 	this.cpuWrite = (addr, data) => {
@@ -231,7 +231,7 @@ function Ppu () {
 			if (addr == 0x0014) addr = 0x0004
 			if (addr == 0x0018) addr = 0x0008
 			if (addr == 0x001C) addr = 0x000C
-			data = this.tblPalette[addr] & (this.readBit(this.maskLookup.name, this.maskLookup['grayscale']))
+			data = this.tblPalette[addr] & (this.readBit(this.maskLookup.name, this.maskLookup['grayscale']) ? 0x30 : 0x3F)
 		}
 		return data
 	}
@@ -285,8 +285,6 @@ function Ppu () {
 		this.bgNextTileAttr = new Uint8Array(1)
 		this.bgNextTileLsb = new Uint8Array(1)
 		this.bgNextTileMsb = new Uint8Array(1)
-		this.bgShifterPatternLo = new Uint16Array(1)
-		this.bgShifterPatternHi = new Uint16Array(1)
 		this.bgShifterPatternLo = new Uint16Array(1)
 		this.bgShifterPatternHi = new Uint16Array(1)
 		
@@ -384,6 +382,7 @@ function Ppu () {
 						this.bgNextTileId[0] = this.ppuRead(0x2000 | (this.vramAddr[0] & 0x0FFF))
 						break
 					case 2:
+						if (window.debugEnable) debugger
 						this.bgNextTileAttr[0] = this.ppuRead(0x23C0 | (this.readBit(this.loopyLookup.vramName, this.loopyLookup['nameTableY']) << 11)
 																													| (this.readBit(this.loopyLookup.vramName, this.loopyLookup['nameTableX']) << 10)
 																													| ((this.readCourseY(this.loopyLookup.vramName) >> 2) << 3)
@@ -443,10 +442,12 @@ function Ppu () {
 			let bgPal0 = new Uint8Array(1)
 			let bgPal1 = new Uint8Array(1)
 			bgPal0[0] = (this.bgShifterAttributeLo[0] & bitMux[0]) > 0
-			bgPal1[0] = (this.bgShifterAttributeLo[0] & bitMux[0]) > 0
+			bgPal1[0] = (this.bgShifterAttributeHi[0] & bitMux[0]) > 0
 
 			bgPalette[0] = (bgPal1[0] << 1) | bgPal0[0]
 		}
+
+		if (window.debugEnable) console.log(`MSB: ${bgPalette[0]}  LSB: ${bgPixel[0]}  pttrHigh: ${this.bgShifterPatternHi[0]}  prttrLow: ${this.bgShifterPatternLo[0]}  attrHigh: ${this.bgShifterAttributeHi}  attrLow: ${this.bgShifterAttributeLo[0]}`)
 
 		// if (window.debugControl) debugger
 		let pxlColor = this.getColorFromPaletteRam(bgPalette[0], bgPixel[0])
