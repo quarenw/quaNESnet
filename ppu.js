@@ -95,7 +95,6 @@ function Ppu () {
 
 	this.setMulti = (reg, offset, size, value) => {
 		let mask = (1 << size) - 1
-		value = value & 1
 		this[reg][0] = this[reg][0] & ~(mask << offset) | (value << offset)
 	}
 
@@ -107,9 +106,8 @@ function Ppu () {
 	this.setFineY = (ramType, data) => this.setMulti(ramType, 12, 3, data)
 
 	this.getColorFromPaletteRam = (palette, pixel) => {
-		// if (pixel) debugger
-		return this.PALETTES[this.ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F] // NOTE: Problematic
-		// return this.PALETTES[pixel] // NOTE: Problematic
+		const index = this.ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F
+		return this.PALETTES[index]
 	}
 
 	this.cpuRead = (addr, readOnly) => {
@@ -198,7 +196,6 @@ function Ppu () {
 				}
 				break
 			case 0x0007:
-				// if (this.vramAddr[0] == 16384) debugger
 				this.ppuWrite(this.vramAddr[0], data)
 				this.vramAddr[0] += (this.readBit(this.controlLookup.name, this.controlLookup['incrementMode']) ? 32 : 1)
 				break
@@ -212,7 +209,7 @@ function Ppu () {
 
 		} else if (addr >= 0x0000 && addr <= 0x1FFF) {
 			data = this.tblPattern[(addr & 0x100) >> 12][addr & 0x0FFF]
-		} else if (addr >= 0x2000 && addr <= 0x3EFFF) {
+		} else if (addr >= 0x2000 && addr <= 0x3EFF) {
 			addr &= 0x0FFF
 			if (this.cart.mirror == 'VERTICAL') {
 				if (addr >= 0x0000 && addr <= 0x03FF) data = this.tblName[0][addr & 0x03FF]
@@ -252,7 +249,6 @@ function Ppu () {
 				if (addr >= 0x0800 && addr <= 0x0BFF) this.tblName[0][addr & 0x03FF] = data
 				if (addr >= 0x0C00 && addr <= 0x0FFF) this.tblName[1][addr & 0x03FF] = data
 			} else if (this.cart.mirror == 'HORIZONTAL') {
-				// if (data != 36 && data != 0) debugger
 				if (addr >= 0x0000 && addr <= 0x03FF) this.tblName[0][addr & 0x03FF] = data
 				if (addr >= 0x0400 && addr <= 0x07FF) this.tblName[0][addr & 0x03FF] = data
 				if (addr >= 0x0800 && addr <= 0x0BFF) this.tblName[1][addr & 0x03FF] = data
@@ -353,12 +349,11 @@ function Ppu () {
 		}
 
 		const loadBackgrounShifters = () => {
-			// if (this.bgNextTileLsb[0] || this.bgShifterPatternLo[0]) debugger
-			this.bgShifterPatternLo[0] = (this.bgShifterPatternLo & 0xFF00) | this.bgNextTileLsb[0]
-			this.bgShifterPatternHi[0] = (this.bgShifterPatternHi & 0xFF00) | this.bgNextTileMsb[0]
+			this.bgShifterPatternLo[0] = (this.bgShifterPatternLo[0] & 0xFF00) | this.bgNextTileLsb[0]
+			this.bgShifterPatternHi[0] = (this.bgShifterPatternHi[0] & 0xFF00) | this.bgNextTileMsb[0]
 
-			this.bgShifterAttributeLo[0] = (this.bgShifterAttributeLo & 0xFF00) | ((this.bgNextTileAttr & 0b01) ? 0xFF : 0x00)
-			this.bgShifterAttributeHi[0] = (this.bgShifterAttributeHi & 0xFF00) | ((this.bgNextTileAttr & 0b10) ? 0xFF : 0x00)
+			this.bgShifterAttributeLo[0] = (this.bgShifterAttributeLo[0] & 0xFF00) | ((this.bgNextTileAttr[0] & 0b01) ? 0xFF : 0x00)
+			this.bgShifterAttributeHi[0] = (this.bgShifterAttributeHi[0] & 0xFF00) | ((this.bgNextTileAttr[0] & 0b10) ? 0xFF : 0x00)
 		}
 
 		const updateShifters = () => {
@@ -382,7 +377,6 @@ function Ppu () {
 						this.bgNextTileId[0] = this.ppuRead(0x2000 | (this.vramAddr[0] & 0x0FFF))
 						break
 					case 2:
-						if (window.debugEnable) debugger
 						this.bgNextTileAttr[0] = this.ppuRead(0x23C0 | (this.readBit(this.loopyLookup.vramName, this.loopyLookup['nameTableY']) << 11)
 																													| (this.readBit(this.loopyLookup.vramName, this.loopyLookup['nameTableX']) << 10)
 																													| ((this.readCourseY(this.loopyLookup.vramName) >> 2) << 3)
@@ -390,7 +384,7 @@ function Ppu () {
 
 						if (this.readCourseY(this.loopyLookup.vramName) & 0x02) this.bgNextTileAttr[0] >>= 4
 						if (this.readCourseX(this.loopyLookup.vramName) & 0x02) this.bgNextTileAttr[0] >>= 2
-						this.bgNextTileAttr &= 0x03
+						this.bgNextTileAttr[0] &= 0x03
 						break
 					case 4:
 						this.bgNextTileLsb[0] = this.ppuRead((this.readBit(this.controlLookup.name, this.controlLookup['patternBackground']) << 12)
@@ -401,6 +395,7 @@ function Ppu () {
 						this.bgNextTileMsb[0] = this.ppuRead((this.readBit(this.controlLookup.name, this.controlLookup['patternBackground']) << 12)
 																											+ (this.bgNextTileId[0] << 4)
 																											+ (this.readFineY(this.loopyLookup.vramName) + 8))
+						break
 					case 7:
 						incrementScrollX()
 						break
@@ -447,13 +442,8 @@ function Ppu () {
 			bgPalette[0] = (bgPal1[0] << 1) | bgPal0[0]
 		}
 
-		if (window.debugEnable) console.log(`MSB: ${bgPalette[0]}  LSB: ${bgPixel[0]}  pttrHigh: ${this.bgShifterPatternHi[0]}  prttrLow: ${this.bgShifterPatternLo[0]}  attrHigh: ${this.bgShifterAttributeHi}  attrLow: ${this.bgShifterAttributeLo[0]}`)
-
-		// if (window.debugControl) debugger
 		let pxlColor = this.getColorFromPaletteRam(bgPalette[0], bgPixel[0])
-		// if (pxlColor != 4285887861) debugger
 		this.display.renderPixel(this.cycle - 1, this.scanline, pxlColor)
-		// this.display.renderPixel(this.cycle - 1, this.scanline, 431)
 		
 		this.cycle++
 		if (this.cycle >= 341) {

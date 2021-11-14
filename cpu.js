@@ -28,6 +28,18 @@ function Cpu () {
 		return string
 	}
 
+	this.debugCpu = () => {
+	console.log(`
+		${hex(this.pc[0], 4).toUpperCase()}: ${this.lookup[this.opcode[0]].name}(${hex(this.opcode[0])})
+		${hex(this.read(this.pc[0] + 1)).toUpperCase()}
+		${hex(this.read(this.pc[0] + 2)).toUpperCase()}
+		${hex(this.read(this.pc[0] + 3)).toUpperCase()}
+		Adr:${this.lookup[this.opcode[0]].addrName}
+		(${this.debugStatus()})
+		a: ${hex(this.a[0])}  x: ${hex(this.x[0])}   y: ${hex(this.y[0])}   stack: ${hex(this.stkp[0])}
+		`.replaceAll(/\t|\n|\r/ig, ''))
+	}
+
 	this.fetched = new Uint8Array(1)
 	this.temp = new Uint16Array(1)
 	this.addrAbs = new Uint16Array(1)
@@ -111,29 +123,6 @@ function Cpu () {
 	this.clock = () => {
 		if (this.cycles == 0) {
 			this.opcode[0] = this.read(this.pc[0])
-
-			// // if (this.pc[0] == 0xC85F || window.debugEnabled) {
-			// // if (this.pc[0] == 0xC04C || window.debugEnabled) { // TST - INCORRECT VRAM ADDRESS < 0x3FFF
-			// // if (this.pc[0] == 0xc054 || window.debugEnabled) {
-			// // if (this.pc[0] == 0xc2e2 || window.debugEnabled) {
-			// if (this.pc[0] == 0xC293 || window.debugEnabled) { // TST - FIRST RENDER - GOAL!!!
-			// // if (this.pc[0] == 0xF1CE || window.debugEnabled) { // DKG - PPU STATUS
-			// // if (this.pc[0] == 0x8596 || window.debugEnabled) { //
-			// // if (this.pc[0] == 0x8356 || window.debugEnabled) { // SGT - scanline render
-
-			// 	window.debugControl = true
-			// 	console.log(`
-			// 	${hex(this.pc[0], 4).toUpperCase()}: ${this.lookup[this.opcode[0]].name}(${hex(this.opcode[0])})
-			// 	 ${hex(this.read(this.pc[0] + 1)).toUpperCase()}
-			// 	 ${hex(this.read(this.pc[0] + 2)).toUpperCase()}
-			// 	 ${hex(this.read(this.pc[0] + 3)).toUpperCase()}
-			// 	 Adr:${this.lookup[this.opcode[0]].addrName}
-			// 	 (${this.debugStatus()})
-			// 	 a: ${hex(this.a[0])}  x: ${hex(this.x[0])}   y: ${hex(this.y[0])}   stack: ${hex(this.stkp[0])}
-			// 	 `.replaceAll(/\t|\n|\r/ig, ''))
-			// 	 debugger
-			// }
-
 			this.setFlag('U', true)
 			this.pc[0]++
 			this.cycles = this.lookup[this.opcode[0]].cycles

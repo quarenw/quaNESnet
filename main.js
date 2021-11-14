@@ -6,12 +6,16 @@ let frame = 0
 let oldTime = window.performance.now()
 let fpsEle = document.querySelector('#fps')
 
+function printMem (mem) {
+  console.log(memoryDump(mem))
+}
+
 function memoryDump (memArray) {
   let dump = `${hex(0, 4)}:   `
   for (let i = 0; i < memArray.length; i++) {
     dump += hex(memArray[i]) + ' '
     if ((i + 1) % 16 === 0) {
-      dump += '\n'
+      dump += "\n"
       if (i + 1 < memArray.length) dump += `${hex(i + 1, 4)}:   `
     }
   }
@@ -32,7 +36,7 @@ function hex (num, width = 2, noPrefix) {
   return prefix + (base + str).substr(-1 * width)
 }
 
-const url = './tst.nes'
+const url = './dkg.nes'
 const request = new XMLHttpRequest()
 request.responseType = 'arraybuffer'
 
@@ -44,10 +48,6 @@ request.onload = () => {
   nes.insertCartridge(cart)
   nes.attachDisplay(display)
   nes.reset()
-
-  // document.addEventListener('click', () => {
-  //   run()
-  // })
 
   window.onkeydown = e => {
     if (e.keyCode == 32) {

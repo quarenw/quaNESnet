@@ -6,6 +6,9 @@ function Bus () {
 	this.controller = []
 	this.controllerState = []
 
+	window.ppu = this.ppu
+	window.cpu = this.cpu
+
 	initDebug(this.cpu, this.cpuRam, this.ppu)
 
 	this.cpu.connectBus(this)
