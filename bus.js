@@ -21,6 +21,15 @@ function Bus () {
 		left: 0,
 		right: 0
 	}
+	this.dmaPage = new Uint8Array(1)
+	this.dmaAddr = new Uint8Array(1)
+	this.dmaData = new Uint8Array(1)
+	this.dmaPage[0] = 0x00
+	this.dmaAddr[0] = 0x00
+	this.dmaData[0] = 0x00
+
+	this.dmaTransfer = false
+	this.dmaDummy = true
 
 	window.ppu = this.ppu
 	window.cpu = this.cpu
@@ -37,6 +46,11 @@ function Bus () {
 		}
 		else if (addr >= 0x2000 && addr <= 0x3FFF) {
 			this.ppu.cpuWrite(addr & 0x0007, data)
+		}
+		else if (addr == 0x4014) {
+			this.dmaPage[0] = data
+			this.dmaAddr[0] = 0x00
+			this.dmaTransfer = true
 		}
 		else if (addr >= 0x4016 && addr <= 0x4017) {
 			this.controllerState[addr & 0x0001] = this.controller[addr & 0x0001]
@@ -78,7 +92,27 @@ function Bus () {
 
 	this.clock = () => {
 		this.ppu.clock()
-		if (this.nSystemClockCounter % 3 === 0) this.cpu.clock()
+		if (this.nSystemClockCounter % 3 === 0) {
+			if (this.dmaTransfer) {
+				if (this.dmaDummy) {
+					if (this.nSystemClockCounter % 2 === 1) this.dmaDummy = false
+				}
+				else {
+					if (this.nSystemClockCounter % 2 === 0) this.dmaData[0] = this.cpuRead(this.dmaPage[0] << 8 | this.dmaAddr[0])
+					else {
+						this.ppu.sObjectAttributeEntry[this.dmaAddr[0]] = this.dmaData[0]
+						this.dmaAddr[0]++
+						if (this.dmaAddr[0] == 0x00) {
+							this.dmaTransfer = false
+							this.dmaDummy = true
+						}
+					}
+				}
+			}
+			else {
+				this.cpu.clock()
+			}
+		}
 		if (this.ppu.nmi) {
 			this.ppu.nmi = false
 			this.cpu.nmi()

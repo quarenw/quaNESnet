@@ -80,6 +80,10 @@ function Ppu () {
 		// Last bit unused
 	}
 
+	this.sObjectAttributeEntry = new Uint8Array(256) // uint8 [y, id, attr, x] x 64
+	this.oamAddr = new Uint8Array(1)
+	this.oamAddr[0] = 0x00
+
 	this.readBit = (reg, position) => {
 		return (this[reg][0] >> position) & 1
 	}
@@ -126,6 +130,7 @@ function Ppu () {
 				case 0x0003:
 					break
 				case 0x0004:
+					data = this.sObjectAttributeEntry[this.oamAddr[0]]
 					break
 				case 0x0005:
 					break
@@ -171,8 +176,10 @@ function Ppu () {
 			case 0x0002:
 				break
 			case 0x0003:
+				this.oamAddr[0] = data
 				break
 			case 0x0004:
+				this.sObjectAttributeEntry[this.oamAddr[0]] = data
 				break
 			case 0x0005:
 				if (this.addrLatch[0] == 0) {
