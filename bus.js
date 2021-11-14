@@ -3,8 +3,24 @@ function Bus () {
 	this.cpuRam = new Uint8Array(2048)
 	this.cpu = new Cpu()
 	this.ppu = new Ppu()
-	this.controller = []
-	this.controllerState = []
+	this.controller = [
+		new Uint8Array(1),
+		new Uint8Array(1)
+	]
+	this.controllerState = [
+		new Uint8Array(1),
+		new Uint8Array(1)
+	]
+	this.joypad = {
+		a: 0,
+		b: 0,
+		start: 0,
+		select: 0,
+		up: 0,
+		down: 0,
+		left: 0,
+		right: 0
+	}
 
 	window.ppu = this.ppu
 	window.cpu = this.cpu

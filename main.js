@@ -6,6 +6,17 @@ let frame = 0
 let oldTime = window.performance.now()
 let fpsEle = document.querySelector('#fps')
 
+const joyMapping = {
+  '87': { inputKey: 'w', gamepadKey: 'up'},
+  '83': { inputKey: 's', gamepadKey: 'down'},
+  '65': { inputKey: 'a', gamepadKey: 'left'},
+  '68': { inputKey: 'd', gamepadKey: 'right'},
+  '13': { inputKey: 'enter', gamepadKey: 'start'},
+  '190': { inputKey: ',', gamepadKey: 'b'},
+  '188': { inputKey: '.', gamepadKey: 'a'},
+  '191': { inputKey: '/', gamepadKey: 'select'}
+}
+
 function printMem (mem) {
   console.log(memoryDump(mem))
 }
@@ -36,7 +47,7 @@ function hex (num, width = 2, noPrefix) {
   return prefix + (base + str).substr(-1 * width)
 }
 
-const url = './dkg.nes'
+const url = './tst.nes'
 const request = new XMLHttpRequest()
 request.responseType = 'arraybuffer'
 
@@ -48,16 +59,43 @@ request.onload = () => {
   nes.insertCartridge(cart)
   nes.attachDisplay(display)
   nes.reset()
-
+  
   window.onkeydown = e => {
     if (e.keyCode == 32) {
       running = !running
       run()
     }
+    
+    const button = joyMapping[e.keyCode]
+    if (button) {
+      nes.joypad[button.gamepadKey] = 1
+    }
+
+    e.preventDefault()
+  }
+
+  window.onkeyup = e => {
+    const button = joyMapping[e.keyCode]
+    if (button) {
+      nes.joypad[button.gamepadKey] = 0
+    }
+
+    e.preventDefault()
   }
 
   function run () {
     const cycles = (341 * 262 /3) | 0
+
+    nes.controller[0][0] = 0x00
+    nes.controller[0][0] |= nes.joypad['a'] ? 0x80 : 0x00
+    nes.controller[0][0] |= nes.joypad['b'] ? 0x40 : 0x00
+    nes.controller[0][0] |= nes.joypad['select'] ? 0x20 : 0x00
+    nes.controller[0][0] |= nes.joypad['start'] ? 0x10 : 0x00
+    nes.controller[0][0] |= nes.joypad['up'] ? 0x08 : 0x00
+    nes.controller[0][0] |= nes.joypad['down'] ? 0x04 : 0x00
+    nes.controller[0][0] |= nes.joypad['left'] ? 0x02 : 0x00
+    nes.controller[0][0] |= nes.joypad['right'] ? 0x01 : 0x00
+
     for (let i = 0; i < cycles; i ++) nes.clock()
     if (running) {
       measureFps()
