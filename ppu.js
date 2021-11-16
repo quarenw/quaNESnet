@@ -84,6 +84,16 @@ function Ppu () {
 	this.oamAddr = new Uint8Array(1)
 	this.oamAddr[0] = 0x00
 
+	this.spriteScanline = new Uint8Array(32)
+	this.scanY = 0
+	this.scanId = 1
+	this.scanAttr = 2
+	this.scanX = 3
+	this.spriteCount = new Uint8Array(1)
+
+	this.spriteShifterPatternLo = new Uint8Array(8)
+	this.spriteShifterPatternHi = new Uint8Array(8)
+
 	this.readBit = (reg, position) => {
 		return (this[reg][0] >> position) & 1
 	}
@@ -371,11 +381,31 @@ function Ppu () {
 				this.bgShifterAttributeLo[0] <<= 1
 				this.bgShifterAttributeHi[0] <<= 1
 			}
+
+			if (this.readBit(this.maskLookup.name, this.maskLookup['renderSprites']) && this.cycle >=1 && this.cycle < 258) {
+				for (let i = 0; i < this.spriteCount[0]; i++) {
+					if (this.spriteScanline[i * 4 + this.scanX] > 0) {
+						this.spriteScanline[i * 4 + this.scanX]--
+					}
+					else {
+						this.spriteShifterPatternLo[i] <<= 1
+						this.spriteShifterPatternHi[i] <<= 1
+					}
+				}
+			}
 		}
 
 		if (this.scanline >= -1 && this.scanline < 240) {
 			if (this.scanline == 0 && this.cycle == 0) this.cycle = 1
-			if (this.scanline == -1 && this.cycle == 1) this.setBit(this.statusLookup.name, this.statusLookup['verticalBlank'], 0)
+			if (this.scanline == -1 && this.cycle == 1) {
+				this.setBit(this.statusLookup.name, this.statusLookup['verticalBlank'], 0)
+
+				this.setBit(this.statusLookup.name, this.statusLookup['spriteOverflow'], 0)
+				for (let i = 0; i < 8; i++) {
+					this.spriteShifterPatternLo[i] = 0
+					this.spriteShifterPatternHi[i] = 0
+				}
+			}
 			if ((this.cycle >= 2 && this.cycle < 258) || (this.cycle >= 321 && this.cycle < 338)) {
 				updateShifters()
 				switch((this.cycle - 1) % 8) {
@@ -418,6 +448,92 @@ function Ppu () {
 			if (this.scanline == -1 && this.cycle >= 280 && this.cycle < 305) transferAddressY()
 		}
 
+		// Foreground
+		if (this.cycle == 257 && this.scanline >= 0) {
+			this.spriteScanline = new Uint8Array(Array(this.spriteScanline.length).fill(0xFF))
+			this.spriteCount[0] = 0
+
+			let nOAMEntry = new Uint8Array(1)
+			while (nOAMEntry[0] < 64 && this.spriteCount[0] < 9) {
+				let diff = new Int16Array(1)
+				diff[0] = this.scanline - this.sObjectAttributeEntry[nOAMEntry[0] * 4 + this.scanY] // Problematic?
+				if (diff[0] >= 0 && diff[0] < (this.readBit(this.controlLookup.name, this.controlLookup['spriteSize']) ? 16 : 8)) {
+					if (this.spriteCount[0] < 8) {   
+						let normalArr = Array.from(this.spriteScanline)
+						normalArr.splice(this.spriteCount[0] * 4, 4, ...Array.from(this.sObjectAttributeEntry.slice(nOAMEntry[0] * 4, nOAMEntry[0] * 4 + 4)))
+						this.spriteScanline = new Uint8Array(normalArr)
+						this.spriteCount[0]++
+					}
+				}
+				nOAMEntry[0]++
+			}
+			if (this.spriteCount[0] > 8) this.setBit(this.statusLookup.name, this.statusLookup['spriteOverflow'], 1)
+		}
+
+		if (this.cycle === 340) {
+			for (let i = 0; i < this.spriteCount[0]; i++) {
+				let spritePatternBitsLo = new Uint8Array(1)
+				let spritePatternBitsHi = new Uint8Array(1)
+				let spritePatternAddrLo = new Uint16Array(1)
+				let spritePatternAddrHi = new Uint16Array(1)
+
+				if (!this.readBit(this.controlLookup.name, this.controlLookup['spriteSize'])) {
+					if (!(this.spriteScanline[i * 4 + this.scanAttr] & 0x80)) {
+						spritePatternAddrLo[0] = 
+							(this.readBit(this.controlLookup.name, this.controlLookup['patternSprite']) << 12)
+							| (this.spriteScanline[i * 4 + this.scanId] << 4)
+							| (this.scanline - this.spriteScanline[i * 4 + this.scanY])
+					}
+					else {
+						spritePatternAddrLo[0] = 
+							(this.readBit(this.controlLookup.name, this.controlLookup['patternSprite']) << 12)
+							| (this.spriteScanline[i * 4 + this.scanId] << 4)
+							| (7 - this.scanline - this.spriteScanline[i * 4 + this.scanY])
+					}
+				}
+				else {
+					if (!(this.spriteScanline[i * 4 + this.scanAttr] & 0x80)) {
+						if (this.scanline - this.spriteScanline[i * 4 + this.scanY] < 8) {
+							spritePatternAddrLo[0] =
+								((this.spriteScanline[i * 4 + this.scanId] & 0x01) << 12)
+								| ((this.spriteScanline[i * 4 + this.scanId] && 0xFE) << 4)
+								| ((this.scanline - this.spriteScanline[i * 4 + this.scanY] & 0x07))
+						}
+						else {
+							spritePatternAddrLo[0] =
+								((this.spriteScanline[i * 4 + this.scanId] & 0x01) << 12)
+								| (((this.spriteScanline[i * 4 + this.scanId] && 0xFE) + 1) << 4)
+								| ((this.scanline - this.spriteScanline[i * 4 + this.scanY] & 0x07))
+						}
+					}
+					else {
+						if (this.scanline - this.spriteScanline[i * 4 + this.scanY] < 8) {
+							spritePatternAddrLo[0] =
+								((this.spriteScanline[i * 4 + this.scanId] & 0x01) << 12)
+								| (((this.spriteScanline[i * 4 + this.scanId] && 0xFE) + 1) << 4)
+								| (7 - (this.scanline - this.spriteScanline[i * 4 + this.scanY] & 0x07))
+						}
+						else {
+								spritePatternAddrLo[0] =
+									((this.spriteScanline[i * 4 + this.scanId] & 0x01) << 12)
+									| ((this.spriteScanline[i * 4 + this.scanId] && 0xFE) << 4)
+									| (7 - (this.scanline - this.spriteScanline[i * 4 + this.scanY] & 0x07))
+						}
+					}
+				}
+				spritePatternAddrHi[0] = spritePatternAddrLo[0] + 8
+				spritePatternBitsLo[0] = this.ppuRead(spritePatternAddrLo[0])
+				spritePatternBitsHi[0] = this.ppuRead(spritePatternAddrHi[0])
+
+				if (this.spriteScanline[i * 4 + this.scanAttr] & 0x40) {
+					spritePatternBitsLo[0] = flipbyte(spritePatternBitsLo[0])
+					spritePatternBitsHi[0] = flipbyte(spritePatternBitsHi[0])
+				}
+				this.spriteShifterPatternLo[i] = spritePatternBitsLo[0]
+				this.spriteShifterPatternHi[i] = spritePatternBitsHi[0]
+			}
+		}
+
 		if (this.scanline == 240) {}
 
 		if (this.scanline >= 241 && this.scanline < 261) {
@@ -449,7 +565,56 @@ function Ppu () {
 			bgPalette[0] = (bgPal1[0] << 1) | bgPal0[0]
 		}
 
-		let pxlColor = this.getColorFromPaletteRam(bgPalette[0], bgPixel[0])
+		let fgPixel = new Uint8Array(1)
+		let fgPallet = new Uint8Array(1)
+		let fgPriority = new Uint8Array(1)
+
+		if (this.readBit(this.maskLookup.name, this.maskLookup['renderSprites'])) {
+			for (let i = 0; i < this.spriteCount[0]; i++) {
+				if (this.spriteScanline[i * 4 + this.scanX] == 0) {
+					let fgPixelLo = new Uint8Array(1)
+					let fgPixelHi	 = new Uint8Array(1)
+					fgPixelLo[0] = (this.spriteShifterPatternLo[i] & 0x80) > 0
+					fgPixelHi[0] = (this.spriteShifterPatternHi[i] & 0x80) > 0
+					fgPixel[0] = (fgPixelHi[0] << 1) | (fgPixelLo[0])
+
+					fgPallet[0] = (this.spriteScanline[i * 4 + this.scanAttr] & 0x03) + 0x04
+					fgPriority[0] = (this.spriteScanline[i * 4 + this.scanAttr] & 0x20) == 0
+
+					if (fgPixel[0] != 0) break
+				}
+			}
+		}
+
+		let pixel = new Uint8Array(1)
+		let palette = new Uint8Array(1)
+		pixel[0] = 0x00
+		palette[0] = 0x00
+
+		if (bgPixel[0] == 0 && fgPixel[0] == 0) {
+			pixel[0] = 0x00
+			palette[0] = 0x00
+		}
+		else if (bgPixel[0] == 0 && fgPixel[0] > 0) {
+			pixel[0] = fgPixel[0]
+			palette[0] = fgPallet[0]
+		}
+		else if (bgPixel[0] > 0 && fgPixel[0] == 0) {
+			pixel[0] = bgPixel[0]
+			palette[0] = bgPalette[0]
+		}
+		else if (bgPixel[0] > 0 && fgPixel[0] > 0) {
+			if (fgPriority[0]) {
+				pixel[0] = fgPixel[0]
+				palette[0] = fgPallet[0]
+			}
+			else {
+				pixel[0] = bgPixel[0]
+				palette[0] = bgPalette[0]
+			}
+		}
+
+		let pxlColor = this.getColorFromPaletteRam(palette[0], pixel[0])
 		this.display.renderPixel(this.cycle - 1, this.scanline, pxlColor)
 		
 		this.cycle++
@@ -531,4 +696,11 @@ function Ppu () {
 		0xff000000,
 		0xff000000
 	]
+}
+
+function flipbyte (b) {
+	b = (b & 0xF0) >> 4 | (b & 0x0F) << 4
+	b = (b & 0xCC) >> 2 | (b & 0x33) << 2
+	b = (b & 0xAA) >> 1 | (b & 0x55) << 1
+	return b
 }
