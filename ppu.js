@@ -94,6 +94,9 @@ function Ppu () {
 	this.spriteShifterPatternLo = new Uint8Array(8)
 	this.spriteShifterPatternHi = new Uint8Array(8)
 
+	this.spriteZeroHitPossible = false
+	this.spriteZeroBeingRendered = false
+
 	this.readBit = (reg, position) => {
 		return (this[reg][0] >> position) & 1
 	}
@@ -399,7 +402,7 @@ function Ppu () {
 			if (this.scanline == 0 && this.cycle == 0) this.cycle = 1
 			if (this.scanline == -1 && this.cycle == 1) {
 				this.setBit(this.statusLookup.name, this.statusLookup['verticalBlank'], 0)
-
+				this.setBit(this.statusLookup.name, this.statusLookup['spriteZeroHit'], 0)
 				this.setBit(this.statusLookup.name, this.statusLookup['spriteOverflow'], 0)
 				for (let i = 0; i < 8; i++) {
 					this.spriteShifterPatternLo[i] = 0
@@ -454,11 +457,13 @@ function Ppu () {
 			this.spriteCount[0] = 0
 
 			let nOAMEntry = new Uint8Array(1)
+			this.spriteZeroHitPossible = false
 			while (nOAMEntry[0] < 64 && this.spriteCount[0] < 9) {
 				let diff = new Int16Array(1)
 				diff[0] = this.scanline - this.sObjectAttributeEntry[nOAMEntry[0] * 4 + this.scanY] // Problematic?
 				if (diff[0] >= 0 && diff[0] < (this.readBit(this.controlLookup.name, this.controlLookup['spriteSize']) ? 16 : 8)) {
 					if (this.spriteCount[0] < 8) {   
+						if (nOAMEntry[0] == 0) this.spriteZeroHitPossible = true
 						let normalArr = Array.from(this.spriteScanline)
 						normalArr.splice(this.spriteCount[0] * 4, 4, ...Array.from(this.sObjectAttributeEntry.slice(nOAMEntry[0] * 4, nOAMEntry[0] * 4 + 4)))
 						this.spriteScanline = new Uint8Array(normalArr)
@@ -570,6 +575,7 @@ function Ppu () {
 		let fgPriority = new Uint8Array(1)
 
 		if (this.readBit(this.maskLookup.name, this.maskLookup['renderSprites'])) {
+			this.spriteZeroBeingRendered = false
 			for (let i = 0; i < this.spriteCount[0]; i++) {
 				if (this.spriteScanline[i * 4 + this.scanX] == 0) {
 					let fgPixelLo = new Uint8Array(1)
@@ -581,7 +587,10 @@ function Ppu () {
 					fgPallet[0] = (this.spriteScanline[i * 4 + this.scanAttr] & 0x03) + 0x04
 					fgPriority[0] = (this.spriteScanline[i * 4 + this.scanAttr] & 0x20) == 0
 
-					if (fgPixel[0] != 0) break
+					if (fgPixel[0] != 0) {
+						if (i == 0) this.spriteZeroBeingRendered = true
+						break
+					}
 				}
 			}
 		}
@@ -611,6 +620,22 @@ function Ppu () {
 			else {
 				pixel[0] = bgPixel[0]
 				palette[0] = bgPalette[0]
+			}
+
+			if (this.spriteZeroBeingRendered && this.spriteZeroHitPossible) {
+				if (this.readBit(this.maskLookup.name, this.maskLookup['renderBackground'])
+					& this.readBit(this.maskLookup.name, this.maskLookup['renderSprites'])) {
+						if (~(this.readBit(this.maskLookup.name, this.maskLookup['renderBackgroundLeft'])
+							| this.readBit(this.maskLookup.name, this.maskLookup['renderSpritesLeft']))) {
+								if (this.cycle >= 9 && this.cycle < 258) {
+									this.setBit(this.statusLookup.name, this.statusLookup['spriteZeroHit'], 1)
+								}
+							} else {
+								if (this.cycle >= 1 && this.cycle < 258) {
+									this.setBit(this.statusLookup.name, this.statusLookup['spriteZeroHit'], 1)
+								}
+							}
+					}
 			}
 		}
 

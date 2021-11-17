@@ -47,7 +47,7 @@ function hex (num, width = 2, noPrefix) {
   return prefix + (base + str).substr(-1 * width)
 }
 
-const url = './dkg.nes'
+const url = './smb.nes'
 const request = new XMLHttpRequest()
 request.responseType = 'arraybuffer'
 
