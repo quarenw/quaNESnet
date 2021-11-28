@@ -9,14 +9,240 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="">
   <!-- <link rel="stylesheet" href="css/style.css"> -->
+  <style>
+    @font-face {
+      font-family:"Pixel NES";
+      src:url("./res/Pixel_NES.eot?") format("eot"),
+        url("./res/Pixel_NES.woff") format("woff"),
+        url("./res/Pixel_NES.ttf") format("truetype"),
+        url("./res/Pixel_NES.svg#PixelNES") format("svg");
+      font-weight:normal;
+      font-style:normal;
+    }
+
+    body {
+      background-color: black;
+      font-family: 'Pixel NES';
+      color: white;
+    }
+
+    #title {
+      text-align: center;
+      margin: 30px 0 30px 0;
+      font-size: 50px;
+    }
+
+    #canvas {
+      width: 512px;
+      height: 480px;
+      margin: auto;
+    }
+
+    #canvas canvas {
+      width: 512px;
+      height: 480px;
+    }
+
+    #canvas img {
+      position: relative;
+      top: -483px;
+    }
+
+    #settings {
+      margin: auto;
+      margin-top: 40px;
+      display: flex;
+      flex-direction: row;
+      width: min-content;
+    }
+
+    #controls {
+      margin: 50px 0 50px 0;
+      padding: 20px;
+    }
+
+    #fps {
+      color: white;
+    }
+
+    #romDropdown {
+      position: relative;
+      padding: 15px;
+      display: inline-block;
+      min-width: 300px;
+    }
+
+    #romSelection {
+      cursor: pointer;
+      opacity: 0;
+      position: absolute;
+      z-index: 1;
+      padding-right: 15px;
+      height: 30px;
+      overflow: hidden;
+      animation-name: close;
+      animation-duration: .1s;
+    }
+
+    #romSelection div {
+      padding: 5px;
+      display: block;
+    }
+
+    #romSelection .line div {
+      margin-left: 60px;
+    }
+
+    @keyframes open {
+      from {height: 30px; margin-top: 0px; opacity: 1;}
+      to {height: 156px; margin-top: -100px; opacity: 1;}
+    }
+
+    @keyframes close {
+      from {height: 156px; margin-top: -100px; opacity: 1;}
+      to {height: 30px; margin-top: 0px; opacity: 1;}
+    }
+
+    #romDropdown:hover #romSelection {
+      margin-top: -100px;
+      display: block;
+      opacity: 1;
+      animation-name: open;
+      animation-duration: 1s;
+      height: inherit;
+    }
+
+    #romSelection img {
+      display: none;
+      float: left;
+      margin: 0 5px 0 5px;
+    }
+
+    #romSelection .line:hover img {
+      display: inline-block;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .hide {
+      display: none;
+    }
+   
+    :root {
+      --pixel-bg: darkblue;
+      --pixel-border: darkgrey;
+      --pixel-border-2: white;
+      --pixel-border-3: var(--pixel-border);
+      --pixel: 2px;
+    }
+
+    #readme {
+      padding: 20px;
+      margin: 0 30px 0 30px;
+      white-space: nowrap;
+    }
+
+    #readme img {
+      margin-top: 12px;
+    }
+
+    .pixel-border {
+      background: var(--pixel-bg);
+      box-shadow:
+        0 calc(var(--pixel) * -3) 0 calc(var(--pixel) * -1) var(--pixel-bg),
+        0 calc(var(--pixel) * 3) 0 calc(var(--pixel) * -1) var(--pixel-bg),
+        0 calc(var(--pixel) * -6) 0 calc(var(--pixel) * -2) var(--pixel-bg),
+        0 calc(var(--pixel) * 6) 0 calc(var(--pixel) * -2) var(--pixel-bg),
+        0 calc(var(--pixel) * -9) 0 calc(var(--pixel) * -4) var(--pixel-bg),
+        0 calc(var(--pixel) * 9) 0 calc(var(--pixel) * -4) var(--pixel-bg),
+        0 calc(var(--pixel) * -12) 0 calc(var(--pixel) * -6) var(--pixel-bg),
+        0 calc(var(--pixel) * 12) 0 calc(var(--pixel) * -6) var(--pixel-bg),
+
+        calc(var(--pixel) * -1) 0 0 0 var(--pixel-border),
+        var(--pixel) 0 0 0 var(--pixel-border),
+        0 calc(var(--pixel) * -2) 0 0 var(--pixel-border),
+        0 calc(var(--pixel) * 2) 0 0 var(--pixel-border),
+        0 calc(var(--pixel) * -5) 0 calc(var(--pixel) * -1) var(--pixel-border),
+        0 calc(var(--pixel) * 5) 0 calc(var(--pixel) * -1) var(--pixel-border),
+        0 calc(var(--pixel) * -7) 0 calc(var(--pixel) * -2) var(--pixel-border),
+        0 calc(var(--pixel) * 7) 0 calc(var(--pixel) * -2) var(--pixel-border),
+        0 calc(var(--pixel) * -10) 0 calc(var(--pixel) * -4) var(--pixel-border),
+        0 calc(var(--pixel) * 10) 0 calc(var(--pixel) * -4) var(--pixel-border),
+        0 calc(var(--pixel) * -13) 0 calc(var(--pixel) * -6) var(--pixel-border),
+        0 calc(var(--pixel) * 13) 0 calc(var(--pixel) * -6) var(--pixel-border),
+        
+        calc(var(--pixel) * -2) 0 0 0 var(--pixel-border-2),
+        calc(var(--pixel) * 2) 0 0 0 var(--pixel-border-2),
+        0 calc(var(--pixel) * -1) 0 var(--pixel) var(--pixel-border-2), 
+        0 var(--pixel) 0 var(--pixel) var(--pixel-border-2),
+        0 calc(var(--pixel) * -4) 0 0 var(--pixel-border-2),
+        0 calc(var(--pixel) * 4) 0 0 var(--pixel-border-2),
+        0 calc(var(--pixel) * -6) 0 calc(var(--pixel) * -1) var(--pixel-border-2),
+        0 calc(var(--pixel) * 6) 0 calc(var(--pixel) * -1) var(--pixel-border-2),
+        0 calc(var(--pixel) * -8) 0 calc(var(--pixel) * -2) var(--pixel-border-2),
+        0 calc(var(--pixel) * 8) 0 calc(var(--pixel) * -2) var(--pixel-border-2),
+        0 calc(var(--pixel) * -11) 0 calc(var(--pixel) * -4) var(--pixel-border-2),
+        0 calc(var(--pixel) * 11) 0 calc(var(--pixel) * -4) var(--pixel-border-2),
+        0 calc(var(--pixel) * -14) 0 calc(var(--pixel) * -6) var(--pixel-border-2),
+        0 calc(var(--pixel) * 14) 0 calc(var(--pixel) * -6) var(--pixel-border-2),
+
+        calc(var(--pixel) * -3) 0 0 0 var(--pixel-border-3),
+        calc(var(--pixel) * 3) 0 0 0 var(--pixel-border-3),
+        0 0 0 calc(var(--pixel) * 2) var(--pixel-border-3),
+        0 calc(var(--pixel) * -3) 0 var(--pixel) var(--pixel-border-3),
+        0 calc(var(--pixel) * 3) 0 var(--pixel) var(--pixel-border-3),
+        0 calc(var(--pixel) * -5) 0 0 var(--pixel-border-3),
+        0 calc(var(--pixel) * 5) 0 0 var(--pixel-border-3),
+        0 calc(var(--pixel) * -7) 0 calc(var(--pixel) * -1) var(--pixel-border-3),
+        0 calc(var(--pixel) * 7) 0 calc(var(--pixel) * -1) var(--pixel-border-3),
+        0 calc(var(--pixel) * -9) 0 calc(var(--pixel) * -2) var(--pixel-border-3), 
+        0 calc(var(--pixel) * 9) 0 calc(var(--pixel) * -2) var(--pixel-border-3),
+        0 calc(var(--pixel) * -12) 0 calc(var(--pixel) * -4) var(--pixel-border-3),
+        0 calc(var(--pixel) * 12) 0 calc(var(--pixel) * -4) var(--pixel-border-3),
+        0 calc(var(--pixel) * -15) 0 calc(var(--pixel) * -6) var(--pixel-border-3),
+        0 calc(var(--pixel) * 15) 0 calc(var(--pixel) * -6) var(--pixel-border-3);
+    }
+
+  </style>
 </head>
 
 <body>
+  <div id="title">QUAREN JS NES EMULATOR</div>
   <div id="canvas">
     <canvas width="256" height="240"></canvas>
+    <img src="./res/scanlines.png"/>
   </div>
-  <div id="fps">fps: </div>
-  
+  <div id="settings">
+    <div id="menu">
+      <div id="controls" class="pixel-border">
+        <div id="status">Status: Not running</div>
+        <div id="fps">fps: </div>
+        <input type="checkbox" id="scanlines" name="scanlines" checked/>
+        <label for="scanlines">Scanlines</label>
+      </div>
+      <div id="romDropdown" class="pixel-border">
+        <div id="romButton">Rom Select</div>
+        <div id="romSelection"class="pixel-border">
+          <div class="line"><img src="./res/selection.png"/><div data-option="./roms/sgt.nes">Sgt. Helmet</div></div>
+          <div class="line"><img src="./res/selection.png"/><div data-option="./roms/tst.nes">NES Test</div></div>
+          <div class="line"><img src="./res/selection.png"/><div data-option="./roms/smb.nes">Quario</div></div>
+          <div class="line"><img src="./res/selection.png"/><div>Load mine</div></div>
+        </div>
+        <input type="file" id="fileInput" accept=".nes"/>
+      </div>
+    </div>
+    <div id="readme" class="pixel-border">
+     <div>Up,Left,Down,Right: W,A,S,D</div>
+     <div>B: Comma</div>
+     <div>A: Period</div>
+     <div>Select: Forward Slash</div>
+     <div>Start: Enter</div>
+     <div>Start/Stop Emulation: Space</div>
+     <a href="https://github.com/quarenw/quaNESnet" target="_blank"><img src="./res/github.png"/></a>
+    </div>
+  </div>
   <script src="display.js"></script>
   <script src="mapper000.js"></script>
   <script src="ppu.js"></script>
