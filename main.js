@@ -79,7 +79,7 @@ function runCartridge () {
     }
   
     function run () {
-      const cycles = (341 * 262 /3) | 0
+      const cycles = (341 * 262) | 0
   
       nes.controller[0][0] = 0x00
       nes.controller[0][0] |= nes.joypad['a'] ? 0x80 : 0x00

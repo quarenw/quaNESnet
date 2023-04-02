@@ -97,6 +97,29 @@ function Ppu () {
 	this.spriteZeroHitPossible = false
 	this.spriteZeroBeingRendered = false
 
+	// Global vars
+	let bgPixel = new Uint8Array(1)
+	let bgPalette = new Uint8Array(1)
+	let cpu_data = new Uint8Array(1)
+	let spritePatternBitsLo = new Uint8Array(1)
+	let spritePatternBitsHi = new Uint8Array(1)
+	let spritePatternAddrLo = new Uint16Array(1)
+	let spritePatternAddrHi = new Uint16Array(1)
+	let bitMux = new Uint16Array(1)
+	let p0Pixel = new Uint8Array(1)
+	let p1Pixel = new Uint8Array(1)
+	let bgPal0 = new Uint8Array(1)
+	let bgPal1 = new Uint8Array(1)
+	let fgPixel = new Uint8Array(1)
+	let fgPallet = new Uint8Array(1)
+	let fgPriority = new Uint8Array(1)
+	let fgPixelLo = new Uint8Array(1)
+	let fgPixelHi	 = new Uint8Array(1)
+	let pixel = new Uint8Array(1)
+	let palette = new Uint8Array(1)
+	let nOAMEntry = new Uint8Array(1)
+	let diff = new Int16Array(1)
+
 	this.readBit = (reg, position) => {
 		return (this[reg][0] >> position) & 1
 	}
@@ -128,22 +151,22 @@ function Ppu () {
 	}
 
 	this.cpuRead = (addr, readOnly) => {
-		let data = new Uint8Array(1)
+		cpu_data[0] = 0x00
 		if (this.readOnly) {
 			switch (addr) {
 				case 0x0000:
-					data[0] = this.control[0]
+					cpu_data[0] = this.control[0]
 					break
 				case 0x0001:
-					data[0] = this.mask[0]
+					cpu_data[0] = this.mask[0]
 					break
 				case 0x0002:
-					data[0] = this.status[0]
+					cpu_data[0] = this.status[0]
 					break
 				case 0x0003:
 					break
 				case 0x0004:
-					data = this.sObjectAttributeEntry[this.oamAddr[0]]
+					cpu_data = this.sObjectAttributeEntry[this.oamAddr[0]]
 					break
 				case 0x0005:
 					break
@@ -157,7 +180,7 @@ function Ppu () {
 				case 0x0000: break
 				case 0x0001: break
 				case 0x0002:
-					data[0] = (this.status[0] & 0xE0) | (this.ppuDataBuffer[0] & 0x1F)
+					cpu_data[0] = (this.status[0] & 0xE0) | (this.ppuDataBuffer[0] & 0x1F)
 					this.setBit(this.statusLookup.name, this.statusLookup['verticalBlank'], 0)
 					this.addrLatch[0] = 0
 					break
@@ -166,14 +189,14 @@ function Ppu () {
 				case 0x0005: break
 				case 0x0006: break
 				case 0x0007:
-					data[0] = this.ppuDataBuffer[0]
+					cpu_data[0] = this.ppuDataBuffer[0]
 					this.ppuDataBuffer[0] = this.ppuRead(this.vramAddr[0])
-					if (this.vramAddr[0] >= 0x3F00) data[0] = this.ppuDataBuffer[0]
+					if (this.vramAddr[0] >= 0x3F00) cpu_data[0] = this.ppuDataBuffer[0]
 					this.vramAddr[0] += (this.readBit(this.controlLookup.name, this.controlLookup['incrementMode']) ? 32 : 1)
 					break
 			}
 		}
-		return data[0]
+		return cpu_data[0]
 	}
 
 	this.cpuWrite = (addr, data) => {
@@ -456,10 +479,10 @@ function Ppu () {
 			this.spriteScanline = new Uint8Array(Array(this.spriteScanline.length).fill(0xFF))
 			this.spriteCount[0] = 0
 
-			let nOAMEntry = new Uint8Array(1)
+			nOAMEntry[0] = 0x00
 			this.spriteZeroHitPossible = false
 			while (nOAMEntry[0] < 64 && this.spriteCount[0] < 9) {
-				let diff = new Int16Array(1)
+				diff[0] = 0x00
 				diff[0] = this.scanline - this.sObjectAttributeEntry[nOAMEntry[0] * 4 + this.scanY] // Problematic?
 				if (diff[0] >= 0 && diff[0] < (this.readBit(this.controlLookup.name, this.controlLookup['spriteSize']) ? 16 : 8)) {
 					if (this.spriteCount[0] < 8) {   
@@ -477,10 +500,10 @@ function Ppu () {
 
 		if (this.cycle === 340) {
 			for (let i = 0; i < this.spriteCount[0]; i++) {
-				let spritePatternBitsLo = new Uint8Array(1)
-				let spritePatternBitsHi = new Uint8Array(1)
-				let spritePatternAddrLo = new Uint16Array(1)
-				let spritePatternAddrHi = new Uint16Array(1)
+				spritePatternBitsLo[0] = 0x00
+				spritePatternBitsHi[0] = 0x00
+				spritePatternAddrLo[0] = 0x00
+				spritePatternAddrHi[0] = 0x00
 
 				if (!this.readBit(this.controlLookup.name, this.controlLookup['spriteSize'])) {
 					if (!(this.spriteScanline[i * 4 + this.scanAttr] & 0x80)) {
@@ -548,38 +571,38 @@ function Ppu () {
 			}
 		}
 
-		let bgPixel = new Uint8Array(1)
-		let bgPalette = new Uint8Array(1)
+		bgPixel[0] = 0x00
+		bgPalette[0] = 0x00
 
 		if (this.readBit(this.maskLookup.name, this.maskLookup['renderBackground'])) {
-			let bitMux = new Uint16Array(1)
+			bitMux[0] = 0x00
 			bitMux[0] = 0x8000 >> this.fineX[0]
 
-			let p0Pixel = new Uint8Array(1)
-			let p1Pixel = new Uint8Array(1)
+			p0Pixel[0] = 0x00
+			p1Pixel[0] = 0x00
 			p0Pixel[0] = (this.bgShifterPatternLo[0] & bitMux[0]) > 0
 			p1Pixel[0] = (this.bgShifterPatternHi[0] & bitMux[0]) > 0
 
 			bgPixel[0] = (p1Pixel[0] << 1) | p0Pixel[0]
 
-			let bgPal0 = new Uint8Array(1)
-			let bgPal1 = new Uint8Array(1)
+			bgPal0[0] = 0x00
+			bgPal1[0] = 0x00
 			bgPal0[0] = (this.bgShifterAttributeLo[0] & bitMux[0]) > 0
 			bgPal1[0] = (this.bgShifterAttributeHi[0] & bitMux[0]) > 0
 
 			bgPalette[0] = (bgPal1[0] << 1) | bgPal0[0]
 		}
 
-		let fgPixel = new Uint8Array(1)
-		let fgPallet = new Uint8Array(1)
-		let fgPriority = new Uint8Array(1)
+		fgPixel[0] = 0x00
+		fgPallet[0] = 0x00
+		fgPriority[0] = 0x00
 
 		if (this.readBit(this.maskLookup.name, this.maskLookup['renderSprites'])) {
 			this.spriteZeroBeingRendered = false
 			for (let i = 0; i < this.spriteCount[0]; i++) {
 				if (this.spriteScanline[i * 4 + this.scanX] == 0) {
-					let fgPixelLo = new Uint8Array(1)
-					let fgPixelHi	 = new Uint8Array(1)
+					fgPixelLo[0] = 0x00
+					fgPixelHi[0] = 0x00
 					fgPixelLo[0] = (this.spriteShifterPatternLo[i] & 0x80) > 0
 					fgPixelHi[0] = (this.spriteShifterPatternHi[i] & 0x80) > 0
 					fgPixel[0] = (fgPixelHi[0] << 1) | (fgPixelLo[0])
@@ -595,8 +618,6 @@ function Ppu () {
 			}
 		}
 
-		let pixel = new Uint8Array(1)
-		let palette = new Uint8Array(1)
 		pixel[0] = 0x00
 		palette[0] = 0x00
 
@@ -729,3 +750,4 @@ function flipbyte (b) {
 	b = (b & 0xAA) >> 1 | (b & 0x55) << 1
 	return b
 }
+
