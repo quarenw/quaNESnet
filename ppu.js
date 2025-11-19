@@ -216,6 +216,7 @@ function Ppu () {
 				break
 			case 0x0004:
 				this.sObjectAttributeEntry[this.oamAddr[0]] = data
+        this.oamAddr++
 				break
 			case 0x0005:
 				if (this.addrLatch[0] == 0) {
@@ -251,7 +252,7 @@ function Ppu () {
 		if (output) {
 
 		} else if (addr >= 0x0000 && addr <= 0x1FFF) {
-			data = this.tblPattern[(addr & 0x100) >> 12][addr & 0x0FFF]
+			data = this.tblPattern[(addr & 0x1000) >> 12][addr & 0x0FFF]
 		} else if (addr >= 0x2000 && addr <= 0x3EFF) {
 			addr &= 0x0FFF
 			if (this.cart.mirror == 'VERTICAL') {
@@ -516,7 +517,7 @@ function Ppu () {
 						spritePatternAddrLo[0] = 
 							(this.readBit(this.controlLookup.name, this.controlLookup['patternSprite']) << 12)
 							| (this.spriteScanline[i * 4 + this.scanId] << 4)
-							| (7 - this.scanline - this.spriteScanline[i * 4 + this.scanY])
+							| (7 - (this.scanline - this.spriteScanline[i * 4 + this.scanY]))
 					}
 				}
 				else {

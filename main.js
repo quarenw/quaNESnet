@@ -13,8 +13,8 @@ const joyMapping = {
   '65': { inputKey: 'a', gamepadKey: 'left'},
   '68': { inputKey: 'd', gamepadKey: 'right'},
   '13': { inputKey: 'enter', gamepadKey: 'start'},
-  '190': { inputKey: ',', gamepadKey: 'b'},
-  '188': { inputKey: '.', gamepadKey: 'a'},
+  '190': { inputKey: '.', gamepadKey: 'a'},
+  '188': { inputKey: ',', gamepadKey: 'b'},
   '191': { inputKey: '/', gamepadKey: 'select'}
 }
 
