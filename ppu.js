@@ -525,13 +525,13 @@ function Ppu () {
 						if (this.scanline - this.spriteScanline[i * 4 + this.scanY] < 8) {
 							spritePatternAddrLo[0] =
 								((this.spriteScanline[i * 4 + this.scanId] & 0x01) << 12)
-								| ((this.spriteScanline[i * 4 + this.scanId] && 0xFE) << 4)
+								| ((this.spriteScanline[i * 4 + this.scanId] & 0xFE) << 4)
 								| ((this.scanline - this.spriteScanline[i * 4 + this.scanY] & 0x07))
 						}
 						else {
 							spritePatternAddrLo[0] =
 								((this.spriteScanline[i * 4 + this.scanId] & 0x01) << 12)
-								| (((this.spriteScanline[i * 4 + this.scanId] && 0xFE) + 1) << 4)
+								| (((this.spriteScanline[i * 4 + this.scanId] & 0xFE) + 1) << 4)
 								| ((this.scanline - this.spriteScanline[i * 4 + this.scanY] & 0x07))
 						}
 					}
@@ -539,13 +539,13 @@ function Ppu () {
 						if (this.scanline - this.spriteScanline[i * 4 + this.scanY] < 8) {
 							spritePatternAddrLo[0] =
 								((this.spriteScanline[i * 4 + this.scanId] & 0x01) << 12)
-								| (((this.spriteScanline[i * 4 + this.scanId] && 0xFE) + 1) << 4)
+								| (((this.spriteScanline[i * 4 + this.scanId] & 0xFE) + 1) << 4)
 								| (7 - (this.scanline - this.spriteScanline[i * 4 + this.scanY] & 0x07))
 						}
 						else {
 								spritePatternAddrLo[0] =
 									((this.spriteScanline[i * 4 + this.scanId] & 0x01) << 12)
-									| ((this.spriteScanline[i * 4 + this.scanId] && 0xFE) << 4)
+									| ((this.spriteScanline[i * 4 + this.scanId] & 0xFE) << 4)
 									| (7 - (this.scanline - this.spriteScanline[i * 4 + this.scanY] & 0x07))
 						}
 					}
