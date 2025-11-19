@@ -1,4 +1,5 @@
 *.nes
 *.txt
 *.bin
+.env
 

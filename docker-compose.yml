@@ -2,11 +2,7 @@ version: "3"
 services:
   quanesnet:
     image: nginx
-    environment:
-      - VIRTUAL_HOST=jsnes.quaren.co.uk
-      - VIRTUAL_PORT=8080
-      - LETSENCRYPT_HOST=jsnes.quaren.co.uk
-      - LETSENCRYPT_EMAIL=quaren@gmail.com
+    env_file: ".env"
     volumes:
       - ./:/usr/share/nginx/html:ro
 
